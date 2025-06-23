@@ -2,7 +2,10 @@ module madsecurity-defender
 
 go 1.23.4
 
-require github.com/gin-gonic/gin v1.10.1
+require (
+	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
+	github.com/gin-gonic/gin v1.10.1
+)
 
 require (
 	github.com/bytedance/sonic v1.13.3 // indirect

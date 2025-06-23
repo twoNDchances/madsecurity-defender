@@ -8,15 +8,15 @@ import (
 	"slices"
 )
 
-const (
-	AppName = "M&DSecurity/Defender"
-	Version = "1.0.0"
-	Go      = "1.23.4"
-)
-
 var (
+	InfoVars = DictString{
+		"enable": os.Getenv("DEFENDER_INFO_ENABLE"),
+	}
+
 	ProxyVars = DictString{
 		"tls":    os.Getenv("DEFENDER_PROXY_TLS"),
+		"key":    os.Getenv("DEFENDER_PROXY_KEY"),
+		"crt":    os.Getenv("DEFENDER_PROXY_CRT"),
 		"host":   os.Getenv("DEFENDER_PROXY_HOST"),
 		"port":   os.Getenv("DEFENDER_PROXY_PORT"),
 		"prefix": os.Getenv("DEFENDER_PROXY_PREFIX"),
@@ -48,6 +48,8 @@ var (
 	}
 
 	exclusionVars = ListString{
+		"proxy.key",
+		"proxy.crt",
 		"proxy.host",
 		"proxy.prefix",
 
@@ -57,16 +59,17 @@ var (
 		"security.maskHtml",
 		"security.maskJson",
 
-		// "log.console.type",
-		// "log.console.separator",
-		// "log.file.name",
-		// "log.file.type",
-		// "log.file.separator",
+		"log.console.type",
+		"log.console.separator",
+		"log.file.name",
+		"log.file.type",
+		"log.file.separator",
 	}
 )
 
 func CheckEmpty() bool {
 	vars := mergeStringMaps(map[string]DictString{
+		"info":     InfoVars,
 		"proxy":    ProxyVars,
 		"security": SecurityVars,
 		"log":      LogVars,

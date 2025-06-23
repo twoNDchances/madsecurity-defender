@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"log"
+	"madsecurity-defender/app/info"
 	"madsecurity-defender/app/loads"
 	"madsecurity-defender/middlewares"
 	"madsecurity-defender/utils"
@@ -11,6 +12,14 @@ import (
 )
 
 func Boot() {
+	appInfo, status := loads.PrepareInfo()
+	if !status {
+		return
+	}
+	if *appInfo {
+		info.NewBanner().Print()
+	}
+
 	if !loads.PrepareVariable() {
 		return
 	}
@@ -43,5 +52,5 @@ func Boot() {
 		log.Println(utils.NewProxyError("Server", server.Run(address).Error()))
 		return
 	}
-	// log.Println(utils.NewProxyError("Server"))
+	log.Println(utils.NewProxyError("Server", server.RunTLS(address, proxy.Crt, proxy.Key).Error()))
 }

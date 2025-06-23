@@ -3,10 +3,7 @@ package globals
 import (
 	"madsecurity-defender/utils"
 	"net"
-	"os"
-	"path/filepath"
 	"slices"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,23 +21,25 @@ type Security struct {
 
 func (s *Security) Validate() ListError {
 	errors := make(ListError, 0)
-	if err := s.validateUsername(); err != nil {
-		errors = append(errors, err)
-	}
-	if err := s.validatePassword(); err != nil {
-		errors = append(errors, err)
-	}
-	if err := s.validateManagerIp(); err != nil {
-		errors = append(errors, err)
-	}
-	if err := s.validateMaskType(); err != nil {
-		errors = append(errors, err)
-	}
-	if err := s.validateMaskHtml(); err != nil {
-		errors = append(errors, err)
-	}
-	if err := s.validateMaskJson(); err != nil {
-		errors = append(errors, err)
+	if s.Enable {
+		if err := s.validateUsername(); err != nil {
+			errors = append(errors, err)
+		}
+		if err := s.validatePassword(); err != nil {
+			errors = append(errors, err)
+		}
+		if err := s.validateManagerIp(); err != nil {
+			errors = append(errors, err)
+		}
+		if err := s.validateMaskType(); err != nil {
+			errors = append(errors, err)
+		}
+		if err := s.validateMaskHtml(); err != nil {
+			errors = append(errors, err)
+		}
+		if err := s.validateMaskJson(); err != nil {
+			errors = append(errors, err)
+		}
 	}
 	if len(errors) > 0 {
 		return errors
@@ -49,19 +48,15 @@ func (s *Security) Validate() ListError {
 }
 
 func (s *Security) validateUsername() error {
-	if s.Enable {
-		if len(s.Username) == 0 {
-			return utils.NewProxyError("Security.Username", "Username is required when security enabled")
-		}
+	if len(s.Username) == 0 {
+		return utils.NewProxyError("Security.Username", "Username is required when security enabled")
 	}
 	return nil
 }
 
 func (s *Security) validatePassword() error {
-	if s.Enable {
-		if len(s.Password) < 8 {
-			return utils.NewProxyError("Security.Password", "Password length must be greater than or equal to 8 when security is enabled")
-		}
+	if len(s.Password) < 8 {
+		return utils.NewProxyError("Security.Password", "Password length must be greater than or equal to 8 when security is enabled")
 	}
 	return nil
 }
@@ -90,15 +85,14 @@ func (s *Security) validateMaskType() error {
 
 func (s *Security) validateMaskHtml() error {
 	if s.MaskStatus && s.MaskType == "html" {
-		info, err := os.Stat(s.MaskHtml)
+		info, err := utils.CheckFileExists(s.MaskHtml)
 		if err != nil {
 			return utils.NewProxyError("Security.MaskHtml", err.Error())
 		}
 		if info.IsDir() {
 			return utils.NewProxyError("Security.MaskHtml", "This path is directory, .html file is required")
 		}
-		ext := strings.ToLower(filepath.Ext(s.MaskHtml))
-		if ext != ".html" {
+		if utils.GetExtension(s.MaskHtml) != ".html" {
 			return utils.NewProxyError("Security.MaskHtml", "Extension is not a .html")
 		}
 	}
@@ -107,15 +101,14 @@ func (s *Security) validateMaskHtml() error {
 
 func (s *Security) validateMaskJson() error {
 	if s.MaskStatus && s.MaskType == "json" {
-		info, err := os.Stat(s.MaskJson)
+		info, err := utils.CheckFileExists(s.MaskJson)
 		if err != nil {
 			return utils.NewProxyError("Security.MaskJson", err.Error())
 		}
 		if info.IsDir() {
 			return utils.NewProxyError("Security.MaskJson", "This path is directory, .json file is required")
 		}
-		ext := strings.ToLower(filepath.Ext(s.MaskJson))
-		if ext != ".json" {
+		if utils.GetExtension(s.MaskJson) != ".json" {
 			return utils.NewProxyError("Security.MaskJson", "Extension is not a .json")
 		}
 		var result gin.H

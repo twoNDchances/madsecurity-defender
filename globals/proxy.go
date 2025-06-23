@@ -8,6 +8,8 @@ import (
 
 type Proxy struct {
 	TLS    bool
+	Key    string
+	Crt    string
 	Host   string
 	Port   uint32
 	Prefix string
@@ -19,6 +21,9 @@ type Proxy struct {
 
 func (p *Proxy) Validate() ListError {
 	errors := make(ListError, 0)
+	if err := p.validateKeyAndCrt(); err != nil {
+		errors = append(errors, err)
+	}
 	if err := p.validateHost(); err != nil {
 		errors = append(errors, err)
 	}
@@ -30,6 +35,33 @@ func (p *Proxy) Validate() ListError {
 	}
 	if len(errors) > 0 {
 		return errors
+	}
+	return nil
+}
+
+func (p *Proxy) validateKeyAndCrt() error {
+	if p.TLS {
+		keyInfo, err := utils.CheckFileExists(p.Key)
+		if err != nil {
+			return utils.NewProxyError("Key", err.Error())
+		}
+		if keyInfo.IsDir() {
+			return utils.NewProxyError("Key", "This path is directory, .key file is required")
+		}
+		if utils.GetExtension(p.Key) != ".key" {
+			return utils.NewProxyError("Key", "Extension is not a .key")
+		}
+
+		crtInfo, err := utils.CheckFileExists(p.Crt)
+		if err != nil {
+			return utils.NewProxyError("Crt", err.Error())
+		}
+		if crtInfo.IsDir() {
+			return utils.NewProxyError("Crt", "This path is directory, .crt file is required")
+		}
+		if utils.GetExtension(p.Crt) != ".crt" {
+			return utils.NewProxyError("Crt", "Extension is not a .crt")
+		}
 	}
 	return nil
 }

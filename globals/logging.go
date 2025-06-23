@@ -76,7 +76,7 @@ func (l *Log) validateType(logType string) error {
 func (l *Log) validateFileName() error {
 	if l.File.Enable {
 		path := filepath.Dir(l.File.Name)
-		info, err := os.Stat(path)
+		info, err := utils.CheckFileExists(path)
 		if err != nil {
 			return utils.NewProxyError("Log.File.Name", err.Error())
 		}

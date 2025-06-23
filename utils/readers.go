@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 func ReadFile(path string) ([]byte, error) {
@@ -18,4 +20,16 @@ func ReadJson(path string, result any) error {
 		return err
 	}
 	return nil
+}
+
+func CheckFileExists(path string) (os.FileInfo, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
+func GetExtension(path string) string {
+	return strings.ToLower(filepath.Ext(path))
 }

@@ -14,7 +14,6 @@ package main
 // 	"github.com/gin-gonic/gin"
 // )
 
-
 // func getBoundary(contentType string) string {
 // 	_, params, err := mime.ParseMediaType(contentType)
 // 	if err != nil {

@@ -39,3 +39,7 @@ func NewProxyError(field, msg string) error {
 	}
 	return promopt.Error()
 }
+
+func NewColor(text string, color Color) string {
+	return fmt.Sprintf("%s%s%s", color, text, reset)
+}

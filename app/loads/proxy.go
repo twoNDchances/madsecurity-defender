@@ -23,6 +23,8 @@ func PrepareProxy() (*globals.Proxy, bool) {
 	}
 	proxy := globals.Proxy{
 		TLS:    tls,
+		Key:    globals.ProxyVars["key"],
+		Crt:    globals.ProxyVars["crt"],
 		Host:   globals.ProxyVars["host"],
 		Port:   port,
 		Prefix: globals.ProxyVars["prefix"],

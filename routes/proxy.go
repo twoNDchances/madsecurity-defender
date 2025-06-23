@@ -11,16 +11,16 @@ import (
 func RouteProxy(router *gin.Engine, proxy *globals.Proxy, security *globals.Security) {
 	prefix := router.Group(proxy.Prefix)
 	{
-		prefix.Use(
-			middlewares.Inspect(
-				security.ManagerIp,
-				security.MaskStatus,
-				security.MaskType,
-				security.MaskHtml,
-				security.MaskJson,
-			),
-		)
 		if security.Enable {
+			prefix.Use(
+				middlewares.Inspect(
+					security.ManagerIp,
+					security.MaskStatus,
+					security.MaskType,
+					security.MaskHtml,
+					security.MaskJson,
+				),
+			)
 			prefix.Use(
 				middlewares.Authenticate(
 					security.Username,
