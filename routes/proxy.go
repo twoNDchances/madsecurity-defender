@@ -30,7 +30,7 @@ func RouteProxy(router *gin.Engine, proxy *globals.Proxy, security *globals.Secu
 		}
 		prefix.GET(proxy.Health, controllers.ReturnHealth)
 		prefix.GET(proxy.Sync)
-		prefix.PATCH(proxy.Apply)
-		prefix.DELETE(proxy.Revoke)
+		prefix.Use(middlewares.Allow()).PATCH(proxy.Apply, controllers.ReturnApplication)
+		prefix.Use(middlewares.Allow()).DELETE(proxy.Revoke, controllers.ReturnRevocation)
 	}
 }

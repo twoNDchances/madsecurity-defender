@@ -39,6 +39,7 @@ func Boot() {
 	}
 
 	server.Use(middlewares.Log(logging))
+	server.Use(middlewares.Prevent())
 
 	security, status := loads.PrepareSecurity()
 	if !status {
