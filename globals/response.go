@@ -21,6 +21,7 @@ type Group struct {
 	Level          uint     `json:"level"`
 	Name           string   `json:"name"`
 	Rules          ListUint `json:"rules"`
+	DefenderID     uint     `json:"defender_id"`
 }
 
 type Rule struct {
