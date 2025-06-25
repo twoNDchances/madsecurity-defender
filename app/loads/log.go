@@ -7,8 +7,8 @@ import (
 )
 
 func PrepareLog() (*globals.Log, bool) {
-	consoleEnable, err := utils.ToBoolean(globals.LogVars["console.enable"])
 	status := true
+	consoleEnable, err := utils.ToBoolean(globals.LogVars["console.enable"])
 	if err != nil {
 		log.Println(utils.NewProxyError("Console.Enable", err.Error()))
 		status = false

@@ -20,8 +20,8 @@ func Apply(context *gin.Context) {
 	go add(&wg, &globals.Groups, responseApiForm.Groups, &globals.TmpGroups)
 	go add(&wg, &globals.Rules, responseApiForm.Rules, &globals.TmpRules)
 	go add(&wg, &globals.Targets, responseApiForm.Targets, &globals.TmpTargets)
-	go add(&wg, &globals.Wordlists, responseApiForm.Wordlists, &globals.Wordlists)
-	go add(&wg, &globals.Words, responseApiForm.Words, &globals.Words)
+	go add(&wg, &globals.Wordlists, responseApiForm.Wordlists, &globals.TmpWordlists)
+	go add(&wg, &globals.Words, responseApiForm.Words, &globals.TmpWords)
 	complete.OK(
 		context,
 		"applied",
@@ -37,20 +37,16 @@ func Apply(context *gin.Context) {
 
 func add[T globals.Identifiable](wg *sync.WaitGroup, models *[]T, preModels []T, tmpModels *[]T) {
 	defer wg.Done()
-	exists := make(map[uint]struct{})
+	*tmpModels = (*tmpModels)[:0]
+	exists := make(map[uint]any)
 	for _, m := range *models {
-		exists[m.GetID()] = struct{}{}
+		exists[m.GetID()] = nil
 	}
-	orginalLength := len(*tmpModels)
 	for _, pre := range preModels {
 		if _, ok := exists[pre.GetID()]; !ok {
 			*tmpModels = append(*tmpModels, pre)
-			exists[pre.GetID()] = struct{}{}
+			exists[pre.GetID()] = nil
 		}
 	}
-	if len(*tmpModels) > orginalLength {
-		*models = append(*models, *tmpModels...)
-	} else {
-		*tmpModels = []T{}
-	}
+	*models = append(*models, *tmpModels...)
 }

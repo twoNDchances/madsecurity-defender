@@ -4,6 +4,7 @@ import (
 	"madsecurity-defender/controllers"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/middlewares"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,13 +14,7 @@ func RouteProxy(router *gin.Engine, proxy *globals.Proxy, security *globals.Secu
 	{
 		if security.Enable {
 			prefix.Use(
-				middlewares.Inspect(
-					security.ManagerIp,
-					security.MaskStatus,
-					security.MaskType,
-					security.MaskHtml,
-					security.MaskJson,
-				),
+				middlewares.Inspect(security),
 			)
 			prefix.Use(
 				middlewares.Authenticate(
@@ -29,8 +24,33 @@ func RouteProxy(router *gin.Engine, proxy *globals.Proxy, security *globals.Secu
 			)
 		}
 		prefix.GET(proxy.Health, controllers.ReturnHealth)
-		prefix.GET(proxy.Sync)
-		prefix.Use(middlewares.Allow()).PATCH(proxy.Apply, controllers.ReturnApplication)
-		prefix.Use(middlewares.Allow()).DELETE(proxy.Revoke, controllers.ReturnRevocation)
+		prefix.GET(proxy.Sync, controllers.ReturnSync)
+		middlewareController := prefix.Use(
+			middlewares.Allow(),
+		)
+		{
+			switch strings.ToLower(proxy.ApplyMethod) {
+			case "post":
+				middlewareController.POST(proxy.Apply, controllers.ReturnApplication)
+			case "put":
+				middlewareController.PUT(proxy.Apply, controllers.ReturnApplication)
+			case "patch":
+				middlewareController.PATCH(proxy.Apply, controllers.ReturnApplication)
+			case "delete":
+				middlewareController.DELETE(proxy.Apply, controllers.ReturnApplication)
+			}
+		}
+		{
+			switch strings.ToLower(proxy.RevokeMethod) {
+			case "post":
+				middlewareController.POST(proxy.Revoke, controllers.ReturnRevocation)
+			case "put":
+				middlewareController.PUT(proxy.Revoke, controllers.ReturnRevocation)
+			case "patch":
+				middlewareController.PATCH(proxy.Revoke, controllers.ReturnRevocation)
+			case "delete":
+				middlewareController.DELETE(proxy.Revoke, controllers.ReturnRevocation)
+			}
+		}
 	}
 }

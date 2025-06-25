@@ -3,20 +3,30 @@ package globals
 import (
 	"madsecurity-defender/utils"
 	"net"
+	"slices"
 	"strings"
 )
 
+var methods = ListString{
+	"post",
+	"put",
+	"patch",
+	"delete",
+}
+
 type Proxy struct {
-	TLS    bool
-	Key    string
-	Crt    string
-	Host   string
-	Port   uint32
-	Prefix string
-	Health string
-	Sync   string
-	Apply  string
-	Revoke string
+	TLS          bool
+	Key          string
+	Crt          string
+	Host         string
+	Port         uint32
+	Prefix       string
+	Health       string
+	Sync         string
+	Apply        string
+	ApplyMethod  string
+	Revoke       string
+	RevokeMethod string
 }
 
 func (p *Proxy) Validate() ListError {
@@ -31,6 +41,12 @@ func (p *Proxy) Validate() ListError {
 		errors = append(errors, err)
 	}
 	if err := p.validatePath(); err != nil {
+		errors = append(errors, err)
+	}
+	if err := p.validateMethod("apply"); err != nil {
+		errors = append(errors, err)
+	}
+	if err := p.validateMethod("revoke"); err != nil {
 		errors = append(errors, err)
 	}
 	if len(errors) > 0 {
@@ -113,6 +129,21 @@ func (p *Proxy) validatePath() error {
 		}
 		if !strings.HasPrefix(path, "/") {
 			return utils.NewProxyError(name, "Must start with ")
+		}
+	}
+	return nil
+}
+
+func (p *Proxy) validateMethod(route string) error {
+	errorMsg := "Only support 'post', 'put', 'patch' or 'delete'"
+	if route == "apply" {
+		if !slices.Contains(methods, strings.ToLower(p.ApplyMethod)) {
+			return utils.NewProxyError("Apply.Method", errorMsg);
+		}
+	}
+	if route == "revoke" {
+		if !slices.Contains(methods, strings.ToLower(p.RevokeMethod)) {
+			return utils.NewProxyError("Apply.Method", errorMsg);
 		}
 	}
 	return nil

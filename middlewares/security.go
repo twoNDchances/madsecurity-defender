@@ -1,25 +1,28 @@
 package middlewares
 
 import (
+	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/abort"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Inspect(managerIp string, maskStatus bool, maskType, maskHtml, maskJson string) gin.HandlerFunc {
+func Inspect(security *globals.Security) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		if context.RemoteIP() != managerIp {
-			if maskStatus {
-				if maskType == "html" {
-					abort.NotFoundHtml(context, maskHtml)
+		if context.RemoteIP() != security.ManagerIp {
+			if security.MaskStatus {
+				if security.MaskType == "html" {
+					abort.NotFoundHtml(context, security.MaskHtml)
 				}
-				if maskType == "json" {
-					abort.NotFoundJson(context, maskJson)
+				if security.MaskType == "json" {
+					abort.NotFoundJson(context, security.MaskJson)
 				}
-				return
+			} else {
+				abort.Unauthorized(context)
 			}
-			abort.Unauthorized(context)
+			return
 		}
+		context.Next()
 	}
 }
 

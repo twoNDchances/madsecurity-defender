@@ -14,16 +14,18 @@ var (
 	}
 
 	ProxyVars = DictString{
-		"tls":    os.Getenv("DEFENDER_PROXY_TLS"),
-		"key":    os.Getenv("DEFENDER_PROXY_KEY"),
-		"crt":    os.Getenv("DEFENDER_PROXY_CRT"),
-		"host":   os.Getenv("DEFENDER_PROXY_HOST"),
-		"port":   os.Getenv("DEFENDER_PROXY_PORT"),
-		"prefix": os.Getenv("DEFENDER_PROXY_PREFIX"),
-		"health": os.Getenv("DEFENDER_PROXY_HEALTH"),
-		"sync":   os.Getenv("DEFENDER_PROXY_SYNC"),
-		"apply":  os.Getenv("DEFENDER_PROXY_APPLY"),
-		"revoke": os.Getenv("DEFENDER_PROXY_REVOKE"),
+		"tls":           os.Getenv("DEFENDER_PROXY_TLS"),
+		"key":           os.Getenv("DEFENDER_PROXY_KEY"),
+		"crt":           os.Getenv("DEFENDER_PROXY_CRT"),
+		"host":          os.Getenv("DEFENDER_PROXY_HOST"),
+		"port":          os.Getenv("DEFENDER_PROXY_PORT"),
+		"prefix":        os.Getenv("DEFENDER_PROXY_PREFIX"),
+		"health":        os.Getenv("DEFENDER_PROXY_HEALTH"),
+		"sync":          os.Getenv("DEFENDER_PROXY_SYNC"),
+		"apply":         os.Getenv("DEFENDER_PROXY_APPLY"),
+		"apply.method":  os.Getenv("DEFENDER_PROXY_APPLY_METHOD"),
+		"revoke":        os.Getenv("DEFENDER_PROXY_REVOKE"),
+		"revoke.method": os.Getenv("DEFENDER_PROXY_REVOKE_METHOD"),
 	}
 
 	SecurityVars = DictString{
@@ -47,6 +49,14 @@ var (
 		"file.separator":    os.Getenv("DEFENDER_PROXY_LOG_FILE_SEPARATOR"),
 	}
 
+	DatabaseVars = DictString{
+		"redis.enable":   os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_ENABLE"),
+		"redis.host":     os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_HOST"),
+		"redis.port":     os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_PORT"),
+		"redis.password": os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_PASSWORD"),
+		"redis.database": os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_DATABASE"),
+	}
+
 	exclusionVars = ListString{
 		"proxy.key",
 		"proxy.crt",
@@ -64,6 +74,8 @@ var (
 		"log.file.name",
 		"log.file.type",
 		"log.file.separator",
+
+		"database.redis.password",
 	}
 )
 

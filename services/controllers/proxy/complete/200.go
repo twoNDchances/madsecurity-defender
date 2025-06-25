@@ -10,9 +10,9 @@ func OK(context *gin.Context, message string, data any) {
 	context.JSON(
 		http.StatusOK,
 		gin.H{
-			"status": false,
-			"message": "",
-			"data": nil,
+			"status": true,
+			"message": message,
+			"data": data,
 			"error": nil,
 		},
 	)

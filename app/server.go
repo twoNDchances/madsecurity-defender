@@ -12,6 +12,10 @@ import (
 )
 
 func Boot() {
+	if !loads.PrepareVariable() {
+		return
+	}
+
 	appInfo, status := loads.PrepareInfo()
 	if !status {
 		return
@@ -20,11 +24,12 @@ func Boot() {
 		info.NewBanner().Print()
 	}
 
-	if !loads.PrepareVariable() {
+	proxy, status := loads.PrepareProxy()
+	if !status {
 		return
 	}
 
-	proxy, status := loads.PrepareProxy()
+	_, status = loads.PrepareRedisDatabase()
 	if !status {
 		return
 	}
@@ -46,6 +51,8 @@ func Boot() {
 		return
 	}
 
+	server.HandleMethodNotAllowed = true
+	server.NoMethod(middlewares.Check(proxy, security))
 	loads.PrepareRoute(server, proxy, security)
 
 	address := fmt.Sprintf("%s:%d", proxy.Host, proxy.Port)
