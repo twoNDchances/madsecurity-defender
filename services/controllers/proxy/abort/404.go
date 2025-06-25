@@ -14,6 +14,7 @@ func NotFoundJson(context *gin.Context, path string) {
 			"status": false,
 			"message": "not found",
 			"data": nil,
+			"error": "page not exists",
 		}
 	}
 	context.AbortWithStatusJSON(http.StatusNotFound, response)

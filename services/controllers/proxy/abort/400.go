@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Unauthorized(context *gin.Context) {
+func BadRequest(context *gin.Context, err string) {
 	context.AbortWithStatusJSON(
-		http.StatusUnauthorized,
+		http.StatusBadRequest,
 		gin.H{
 			"status": false,
-			"message": "authentication fail",
+			"message": "bad request",
 			"data": nil,
-			"error": "credential wrong",
+			"error": err,
 		},
 	)
 }

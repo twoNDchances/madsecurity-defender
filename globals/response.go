@@ -1,11 +1,11 @@
 package globals
 
 type Application struct {
-	Groups    ListGroup    `json:"groups"`
-	Rules     ListRule     `json:"rules"`
-	Targets   ListTarget   `json:"targets"`
-	Wordlists ListWordlist `json:"wordlists"`
-	Words     ListWord     `json:"words"`
+	Groups    []Group    `json:"groups"`
+	Rules     []Rule     `json:"rules"`
+	Targets   []Target   `json:"targets"`
+	Wordlists []Wordlist `json:"wordlists"`
+	Words     []Word     `json:"words"`
 }
 
 type Revocation struct {
@@ -15,6 +15,10 @@ type Revocation struct {
 	Wordlists ListUint `json:"wordlists"`
 }
 
+type Identifiable interface {
+	GetID() uint
+}
+
 type Group struct {
 	ID             uint     `json:"id"`
 	ExecutionOrder uint     `json:"execution_order"`
@@ -22,6 +26,10 @@ type Group struct {
 	Name           string   `json:"name"`
 	Rules          ListUint `json:"rules"`
 	DefenderID     uint     `json:"defender_id"`
+}
+
+func (g Group) GetID() uint {
+	return g.ID
 }
 
 type Rule struct {
@@ -46,6 +54,10 @@ type Rule struct {
 	WordlistID          *uint   `json:"wordlist_id"`
 }
 
+func (r Rule) GetID() uint {
+	return r.ID
+}
+
 type Target struct {
 	ID                  uint    `json:"id"`
 	Name                string  `json:"name"`
@@ -60,14 +72,26 @@ type Target struct {
 	WordlistID          *uint   `json:"wordlist_id"`
 }
 
+func (t Target) GetID() uint {
+	return t.ID
+}
+
 type Wordlist struct {
 	ID    uint
 	Name  string
 	Alias string
 }
 
+func (w Wordlist) GetID() uint {
+	return w.ID
+}
+
 type Word struct {
 	ID         uint
 	Content    string
 	WordlistID uint
+}
+
+func (w Word) GetID() uint {
+	return w.ID
 }
