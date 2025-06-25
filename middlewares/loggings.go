@@ -36,28 +36,28 @@ func Log(logging *globals.Log) gin.HandlerFunc {
 				utils.ReplaceIfWhiteSpace(parameters.ErrorMessage, "-"),
 			)
 		}
-		logJsonFormat := func() string {
+		logJsonFormat := func(eachField, lastField string) string {
 			return fmt.Sprintf(
-				`{
-	"time": "%s",
-	"status": %d,
-	"client_ip": "%s",
-	"user_agent": "%s",
-	"method": "%s",
-	"path": "%s",
-	"request_length": %d,
-	"response_length": %d,
-	"error": "%s"
-}`,
+				`{%s"time": "%s",%s"status": %d,%s"client_ip": "%s",%s"user_agent": "%s",%s"method": "%s",%s"path": "%s",%s"request_length": %d,%s"response_length": %d,%s"error": "%s"%s}`,
+				eachField,
 				parameters.TimeStamp.Format(timeStampLayout),
+				eachField,
 				parameters.StatusCode,
+				eachField,
 				parameters.ClientIP,
+				eachField,
 				parameters.Request.UserAgent(),
+				eachField,
 				parameters.Method,
+				eachField,
 				parameters.Path,
+				eachField,
 				parameters.Request.ContentLength,
+				eachField,
 				parameters.BodySize,
+				eachField,
 				utils.ReplaceIfWhiteSpace(parameters.ErrorMessage, "-"),
+				lastField,
 			) + "\n"
 		}
 		if logging.File.Enable {
@@ -66,7 +66,7 @@ func Log(logging *globals.Log) gin.HandlerFunc {
 				log.Println(utils.NewProxyError("Log.File.Name", err.Error()))
 			} else {
 				if logging.File.Type == "json" {
-					file.WriteString(logJsonFormat())
+					file.WriteString(logJsonFormat("", ""))
 				} else {
 					file.WriteString(logDefaultFormat(logging.File.Separator))
 				}
@@ -74,7 +74,7 @@ func Log(logging *globals.Log) gin.HandlerFunc {
 		}
 		if logging.Console.Enable {
 			if logging.Console.Type == "json" {
-				return logJsonFormat()
+				return logJsonFormat("\n    ", "\n")
 			}
 			return logDefaultFormat(logging.Console.Separator)
 		}
