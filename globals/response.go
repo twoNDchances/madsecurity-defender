@@ -13,6 +13,7 @@ type Revocation struct {
 	Rules     ListUint `json:"rules"`
 	Targets   ListUint `json:"targets"`
 	Wordlists ListUint `json:"wordlists"`
+	Words     ListUint `json:"words"`
 }
 
 type Identifiable interface {

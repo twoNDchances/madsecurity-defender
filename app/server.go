@@ -56,9 +56,12 @@ func Boot() {
 	loads.PrepareRoute(server, proxy, security)
 
 	address := fmt.Sprintf("%s:%d", proxy.Host, proxy.Port)
+	promopt := "Server is listening at"
 	if !proxy.TLS {
+		log.Println(utils.NewColor(fmt.Sprintf("%s %s%s", promopt, "http://", address), utils.YELLOW))
 		log.Println(utils.NewProxyError("Server", server.Run(address).Error()))
 		return
 	}
+	log.Println(utils.NewColor(fmt.Sprintf("%s %s%s", promopt, "https://", address), utils.YELLOW))
 	log.Println(utils.NewProxyError("Server", server.RunTLS(address, proxy.Crt, proxy.Key).Error()))
 }

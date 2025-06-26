@@ -24,7 +24,7 @@ func RouteProxy(router *gin.Engine, proxy *globals.Proxy, security *globals.Secu
 			)
 		}
 		prefix.GET(proxy.Health, controllers.ReturnHealth)
-		prefix.GET(proxy.Sync, controllers.ReturnSync)
+		prefix.GET(proxy.Sync, controllers.ReturnSynchronization)
 		middlewareController := prefix.Use(
 			middlewares.Allow(),
 		)

@@ -1,4 +1,4 @@
-package apply
+package revoke
 
 import (
 	"madsecurity-defender/globals"
@@ -10,23 +10,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Apply(context *gin.Context) {
-	var responseApiForm globals.Application
+func Revoke(context *gin.Context) {
+	var responseApiForm globals.Revocation
 	if err := context.ShouldBindBodyWithJSON(&responseApiForm); err != nil {
 		abort.BadRequest(context, err.Error())
 		return
 	}
 	var wg sync.WaitGroup
 	wg.Add(5)
-	go inmemory.Add(&wg, &globals.Groups, responseApiForm.Groups, &globals.TmpGroups)
-	go inmemory.Add(&wg, &globals.Rules, responseApiForm.Rules, &globals.TmpRules)
-	go inmemory.Add(&wg, &globals.Targets, responseApiForm.Targets, &globals.TmpTargets)
-	go inmemory.Add(&wg, &globals.Wordlists, responseApiForm.Wordlists, &globals.TmpWordlists)
-	go inmemory.Add(&wg, &globals.Words, responseApiForm.Words, &globals.TmpWords)
+	go inmemory.Remove(&wg, &globals.Groups, &responseApiForm.Groups)
+	go inmemory.Remove(&wg, &globals.Rules, &responseApiForm.Rules)
+	go inmemory.Remove(&wg, &globals.Targets, &responseApiForm.Targets)
+	go inmemory.Remove(&wg, &globals.Wordlists, &responseApiForm.Wordlists)
+	go inmemory.Remove(&wg, &globals.Words, &responseApiForm.Words)
 	wg.Wait()
 	complete.OK(
 		context,
-		"applied",
+		"revoked",
 		gin.H{
 			"group": len(globals.Groups),
 			"rule": len(globals.Rules),
