@@ -26,7 +26,7 @@ func NotFoundHtml(context *gin.Context, path string) {
 	contentType := "text/html; charset=utf-8"
 	response := data
 	if err != nil {
-		defaultPath := "services/controllers/proxy/abort/public/404.default.html"
+		defaultPath := "services/controllers/server/abort/public/404.default.html"
 		defaultData, _ := utils.ReadFile(defaultPath)
 		response = defaultData
 	}

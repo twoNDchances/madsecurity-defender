@@ -10,12 +10,12 @@ func PrepareLog() (*globals.Log, bool) {
 	status := true
 	consoleEnable, err := utils.ToBoolean(globals.LogVars["console.enable"])
 	if err != nil {
-		log.Println(utils.NewProxyError("Console.Enable", err.Error()))
+		log.Println(utils.NewServerError("Console.Enable", err.Error()))
 		status = false
 	}
 	fileEnable, err := utils.ToBoolean(globals.LogVars["file.enable"])
 	if err != nil {
-		log.Println(utils.NewProxyError("File.Enable", err.Error()))
+		log.Println(utils.NewServerError("File.Enable", err.Error()))
 		status = false
 	}
 	if !status {

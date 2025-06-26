@@ -27,17 +27,11 @@ type Log struct {
 }
 
 func (l *Log) Validate() ListError {
-	errors := make(ListError, 0)
-	if err := l.validateType("console"); err != nil {
-		errors = append(errors, err)
-	}
-	if err := l.validateType("file"); err != nil {
-		errors = append(errors, err)
-	}
-	if err := l.validateFileName(); err != nil {
-		errors = append(errors, err)
-	}
-	if len(errors) > 0 {
+	if errors := Validate(
+		l.validateType("console"),
+		l.validateType("file"),
+		l.validateFileName(),
+	); len(errors) > 0 {
 		return errors
 	}
 	return nil
@@ -58,7 +52,7 @@ func (l *Log) validateType(logType string) error {
 			},
 			l.Console.Type,
 		) {
-			return utils.NewProxyError("Log.Console.Type", "Must be 'default' or 'json'")
+			return utils.NewServerError("Log.Console.Type", "Must be 'default' or 'json'")
 		}
 		if l.File.Enable && !slices.Contains(
 			ListString{
@@ -67,7 +61,7 @@ func (l *Log) validateType(logType string) error {
 			},
 			l.File.Type,
 		) {
-			return utils.NewProxyError("Log.File.Type", "Must be 'default' or 'json'")
+			return utils.NewServerError("Log.File.Type", "Must be 'default' or 'json'")
 		}
 	}
 	return nil
@@ -78,14 +72,14 @@ func (l *Log) validateFileName() error {
 		path := filepath.Dir(l.File.Name)
 		info, err := utils.CheckFileExists(path)
 		if err != nil {
-			return utils.NewProxyError("Log.File.Name", err.Error())
+			return utils.NewServerError("Log.File.Name", err.Error())
 		}
 		if !info.IsDir() {
-			return utils.NewProxyError("Log.File.Name", fmt.Sprintf("%s is not a directory", path))
+			return utils.NewServerError("Log.File.Name", fmt.Sprintf("%s is not a directory", path))
 		}
 		file, err := os.Create(l.File.Name)
 		if err != nil {
-			return utils.NewProxyError("Log.File.Name", err.Error())
+			return utils.NewServerError("Log.File.Name", err.Error())
 		}
 		defer file.Close()
 	}

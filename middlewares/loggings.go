@@ -63,7 +63,7 @@ func Log(logging *globals.Log) gin.HandlerFunc {
 		if logging.File.Enable {
 			file, err := os.OpenFile(logging.File.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
-				log.Println(utils.NewProxyError("Log.File.Name", err.Error()))
+				log.Println(utils.NewServerError("Log.File.Name", err.Error()))
 			} else {
 				if logging.File.Type == "json" {
 					file.WriteString(logJsonFormat("", ""))

@@ -7,9 +7,16 @@ import (
 )
 
 func PrepareInfo() (*bool, bool) {
-	info, err := utils.ToBoolean(globals.InfoVars["enable"])
+	info, err := utils.ToBoolean(globals.AppVars["info.enable"])
 	if err != nil {
-		log.Println(utils.NewProxyError("Info.Enable", err.Error()))
+		promopt := utils.Promopt{
+			Module: "App",
+			Field: "Info.Enable",
+			Kind: "Error",
+			Msg: err.Error(),
+			Color: utils.RED,
+		}
+		log.Println(promopt.Error())
 		return nil, false
 	}
 	return &info, true

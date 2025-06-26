@@ -8,6 +8,8 @@ import (
 
 func Add[T globals.Identifiable](wg *sync.WaitGroup, models *[]T, preModels []T, tmpModels *[]T) {
 	defer wg.Done()
+	var mutex sync.Mutex
+	mutex.Lock()
 	*tmpModels = (*tmpModels)[:0]
 	exists := make(map[uint]any)
 	for _, m := range *models {
@@ -20,11 +22,14 @@ func Add[T globals.Identifiable](wg *sync.WaitGroup, models *[]T, preModels []T,
 		}
 	}
 	*models = append(*models, *tmpModels...)
+	mutex.Unlock()
 }
 
 
 func Remove[T globals.Identifiable](wg *sync.WaitGroup, models *[]T, preModels *globals.ListUint) {
 	defer wg.Done()
+	var mutex sync.Mutex
+	mutex.Lock()
 	if len(*preModels) == 0 {
 		return
 	}
@@ -35,5 +40,6 @@ func Remove[T globals.Identifiable](wg *sync.WaitGroup, models *[]T, preModels *
 		}
 	}
 	*models = result
+	mutex.Unlock()
 }
 

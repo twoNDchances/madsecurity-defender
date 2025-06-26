@@ -3,7 +3,7 @@ package middlewares
 import (
 	"fmt"
 	"madsecurity-defender/globals"
-	"madsecurity-defender/services/controllers/proxy/abort"
+	"madsecurity-defender/services/controllers/server/abort"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -20,16 +20,16 @@ func Prevent() gin.HandlerFunc {
 	}
 }
 
-func Check(proxy *globals.Proxy, security *globals.Security) gin.HandlerFunc {
+func Check(server *globals.Server, security *globals.Security) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		correctMethod := true
 		switch context.FullPath() {
-		case fmt.Sprintf("%s%s", proxy.Prefix, proxy.Apply):
-			if !strings.EqualFold(context.Request.Method, proxy.ApplyMethod) {
+		case fmt.Sprintf("%s%s", server.Prefix, server.Apply):
+			if !strings.EqualFold(context.Request.Method, server.ApplyMethod) {
 				correctMethod = false
 			}
-		case fmt.Sprintf("%s%s", proxy.Prefix, proxy.Revoke):
-			if !strings.EqualFold(context.Request.Method, proxy.RevokeMethod) {
+		case fmt.Sprintf("%s%s", server.Prefix, server.Revoke):
+			if !strings.EqualFold(context.Request.Method, server.RevokeMethod) {
 				correctMethod = false
 			}
 		default:

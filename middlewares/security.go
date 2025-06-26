@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"madsecurity-defender/globals"
-	"madsecurity-defender/services/controllers/proxy/abort"
+	"madsecurity-defender/services/controllers/server/abort"
 
 	"github.com/gin-gonic/gin"
 )

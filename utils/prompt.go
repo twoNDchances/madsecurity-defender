@@ -29,6 +29,17 @@ func (p *Promopt) Error() error {
 	return fmt.Errorf("%s[%s][%s][%s]: %s%s", p.Color, p.Module, p.Field, p.Kind, p.Msg, reset)
 }
 
+func NewServerError(field, msg string) error {
+	promopt := Promopt{
+		Module: "Server",
+		Field: field,
+		Kind: "Error",
+		Msg: msg,
+		Color: RED,
+	}
+	return promopt.Error()
+}
+
 func NewProxyError(field, msg string) error {
 	promopt := Promopt{
 		Module: "Proxy",

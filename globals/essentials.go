@@ -30,3 +30,13 @@ func ContainsID[T Identifiable](models []Identifiable, id uint) bool {
 	}
 	return false
 }
+
+func Validate(validators ...error) ListError {
+	errors := make(ListError, 0)
+	for _, validator := range validators {
+		if validator != nil {
+			errors = append(errors, validator)
+		}
+	}
+	return errors
+}

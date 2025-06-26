@@ -9,65 +9,80 @@ import (
 )
 
 var (
-	InfoVars = DictString{
-		"enable": os.Getenv("DEFENDER_INFO_ENABLE"),
+	AppVars = DictString{
+		"info.enable": os.Getenv("DEFENDER_APP_INFO_ENABLE"),
 	}
 
-	ProxyVars = DictString{
-		"tls":           os.Getenv("DEFENDER_PROXY_TLS"),
-		"key":           os.Getenv("DEFENDER_PROXY_KEY"),
-		"crt":           os.Getenv("DEFENDER_PROXY_CRT"),
-		"host":          os.Getenv("DEFENDER_PROXY_HOST"),
-		"port":          os.Getenv("DEFENDER_PROXY_PORT"),
-		"prefix":        os.Getenv("DEFENDER_PROXY_PREFIX"),
-		"health":        os.Getenv("DEFENDER_PROXY_HEALTH"),
-		"sync":          os.Getenv("DEFENDER_PROXY_SYNC"),
-		"apply":         os.Getenv("DEFENDER_PROXY_APPLY"),
-		"apply.method":  os.Getenv("DEFENDER_PROXY_APPLY_METHOD"),
-		"revoke":        os.Getenv("DEFENDER_PROXY_REVOKE"),
-		"revoke.method": os.Getenv("DEFENDER_PROXY_REVOKE_METHOD"),
+	ServerVars = DictString{
+		"tls.enable":    os.Getenv("DEFENDER_SERVER_TLS_ENABLE"),
+		"tls.key":       os.Getenv("DEFENDER_SERVER_TLS_KEY"),
+		"tls.crt":       os.Getenv("DEFENDER_SERVER_TLS_CRT"),
+		"host":          os.Getenv("DEFENDER_SERVER_HOST"),
+		"port":          os.Getenv("DEFENDER_SERVER_PORT"),
+		"prefix":        os.Getenv("DEFENDER_SERVER_PREFIX"),
+		"health":        os.Getenv("DEFENDER_SERVER_HEALTH"),
+		"sync":          os.Getenv("DEFENDER_SERVER_SYNC"),
+		"apply":         os.Getenv("DEFENDER_SERVER_APPLY"),
+		"apply.method":  os.Getenv("DEFENDER_SERVER_APPLY_METHOD"),
+		"revoke":        os.Getenv("DEFENDER_SERVER_REVOKE"),
+		"revoke.method": os.Getenv("DEFENDER_SERVER_REVOKE_METHOD"),
 	}
 
 	SecurityVars = DictString{
-		"enable":     os.Getenv("DEFENDER_PROXY_SECURITY_ENABLE"),
-		"username":   os.Getenv("DEFENDER_PROXY_SECURITY_USERNAME"),
-		"password":   os.Getenv("DEFENDER_PROXY_SECURITY_PASSWORD"),
-		"managerIp":  os.Getenv("DEFENDER_PROXY_SECURITY_MANAGER_IP"),
-		"maskStatus": os.Getenv("DEFENDER_PROXY_SECURITY_MASK_STATUS"),
-		"maskType":   os.Getenv("DEFENDER_PROXY_SECURITY_MASK_TYPE"),
-		"maskHtml":   os.Getenv("DEFENDER_PROXY_SECURITY_MASK_HTML"),
-		"maskJson":   os.Getenv("DEFENDER_PROXY_SECURITY_MASK_JSON"),
+		"enable":      os.Getenv("DEFENDER_SERVER_SECURITY_ENABLE"),
+		"username":    os.Getenv("DEFENDER_SERVER_SECURITY_USERNAME"),
+		"password":    os.Getenv("DEFENDER_SERVER_SECURITY_PASSWORD"),
+		"manager.ip":  os.Getenv("DEFENDER_SERVER_SECURITY_MANAGER_IP"),
+		"mask.enable": os.Getenv("DEFENDER_SERVER_SECURITY_MASK_ENABLE"),
+		"mask.type":   os.Getenv("DEFENDER_SERVER_SECURITY_MASK_TYPE"),
+		"mask.html":   os.Getenv("DEFENDER_SERVER_SECURITY_MASK_HTML"),
+		"mask.json":   os.Getenv("DEFENDER_SERVER_SECURITY_MASK_JSON"),
 	}
 
 	LogVars = DictString{
-		"console.enable":    os.Getenv("DEFENDER_PROXY_LOG_CONSOLE_ENABLE"),
-		"console.type":      os.Getenv("DEFENDER_PROXY_LOG_CONSOLE_TYPE"),
-		"console.separator": os.Getenv("DEFENDER_PROXY_LOG_CONSOLE_SEPARATOR"),
-		"file.enable":       os.Getenv("DEFENDER_PROXY_LOG_FILE_ENABLE"),
-		"file.name":         os.Getenv("DEFENDER_PROXY_LOG_FILE_NAME"),
-		"file.type":         os.Getenv("DEFENDER_PROXY_LOG_FILE_TYPE"),
-		"file.separator":    os.Getenv("DEFENDER_PROXY_LOG_FILE_SEPARATOR"),
+		"console.enable":    os.Getenv("DEFENDER_SERVER_LOG_CONSOLE_ENABLE"),
+		"console.type":      os.Getenv("DEFENDER_SERVER_LOG_CONSOLE_TYPE"),
+		"console.separator": os.Getenv("DEFENDER_SERVER_LOG_CONSOLE_SEPARATOR"),
+		"file.enable":       os.Getenv("DEFENDER_SERVER_LOG_FILE_ENABLE"),
+		"file.name":         os.Getenv("DEFENDER_SERVER_LOG_FILE_NAME"),
+		"file.type":         os.Getenv("DEFENDER_SERVER_LOG_FILE_TYPE"),
+		"file.separator":    os.Getenv("DEFENDER_SERVER_LOG_FILE_SEPARATOR"),
 	}
 
-	DatabaseVars = DictString{
-		"redis.enable":   os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_ENABLE"),
-		"redis.host":     os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_HOST"),
-		"redis.port":     os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_PORT"),
-		"redis.password": os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_PASSWORD"),
-		"redis.database": os.Getenv("DEFENDER_PROXY_DATABASE_REDIS_DATABASE"),
+	StorageVars = DictString{
+		"type":           os.Getenv("DEFENDER_SERVER_STORAGE_TYPE"),
+		"redis.host":     os.Getenv("DEFENDER_SERVER_STORAGE_REDIS_HOST"),
+		"redis.port":     os.Getenv("DEFENDER_SERVER_STORAGE_REDIS_PORT"),
+		"redis.password": os.Getenv("DEFENDER_SERVER_STORAGE_REDIS_PASSWORD"),
+		"redis.database": os.Getenv("DEFENDER_SERVER_STORAGE_REDIS_DATABASE"),
+	}
+
+	ProxyVars = DictString{
+		"tls.enable": os.Getenv("DEFENDER_PROXY_TLS_ENABLE"),
+		"tls.key":    os.Getenv("DEFENDER_PROXY_TLS_KEY"),
+		"tls.crt":    os.Getenv("DEFENDER_PROXY_TLS_CRT"),
+		"host":       os.Getenv("DEFENDER_PROXY_HOST"),
+		"port":       os.Getenv("DEFENDER_PROXY_PORT"),
+	}
+
+	BackendVars = DictString{
+		"scheme": os.Getenv("DEFENDER_PROXY_BACKEND_SCHEME"),
+		"host":   os.Getenv("DEFENDER_PROXY_BACKEND_HOST"),
+		"port":   os.Getenv("DEFENDER_PROXY_BACKEND_PORT"),
+		"path":   os.Getenv("DEFENDER_PROXY_BACKEND_PATH"),
 	}
 
 	exclusionVars = ListString{
-		"proxy.key",
-		"proxy.crt",
-		"proxy.host",
-		"proxy.prefix",
+		"server.tls.key",
+		"server.tls.crt",
+		"server.host",
+		"server.prefix",
 
 		"security.username",
 		"security.password",
-		"security.maskType",
-		"security.maskHtml",
-		"security.maskJson",
+		"security.mask.type",
+		"security.mask.html",
+		"security.mask.json",
 
 		"log.console.type",
 		"log.console.separator",
@@ -75,16 +90,25 @@ var (
 		"log.file.type",
 		"log.file.separator",
 
-		"database.redis.password",
+		"storage.redis.password",
+
+		"proxy.tls.key",
+		"proxy.tls.crt",
+		"proxy.host",
+
+		"backend.path",
 	}
 )
 
 func CheckEmpty() bool {
 	vars := mergeStringMaps(map[string]DictString{
-		"info":     InfoVars,
-		"proxy":    ProxyVars,
+		"app":      AppVars,
+		"server":   ServerVars,
 		"security": SecurityVars,
 		"log":      LogVars,
+		"storage":  StorageVars,
+		// "proxy":    ProxyVars,
+		// "backend":  BackendVars,
 	})
 	ok := true
 	for key, value := range vars {

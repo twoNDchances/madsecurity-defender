@@ -1,7 +1,14 @@
 package controllers
 
-import "github.com/gin-gonic/gin"
+import (
+	"madsecurity-defender/globals"
+	"madsecurity-defender/services/controllers/backend/pass"
 
-func ReturnBackend(context *gin.Context) {
-	
+	"github.com/gin-gonic/gin"
+)
+
+func ReturnBackend(backend *globals.Backend) gin.HandlerFunc {
+	return func(context *gin.Context) {
+		pass.Pass(context, backend)
+	}
 }

@@ -16,10 +16,6 @@ type Revocation struct {
 	Words     ListUint `json:"words"`
 }
 
-type Identifiable interface {
-	GetID() uint
-}
-
 type Group struct {
 	ID             uint     `json:"id"`
 	ExecutionOrder uint     `json:"execution_order"`

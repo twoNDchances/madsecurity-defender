@@ -4,12 +4,15 @@ package main
 // 	"bytes"
 // 	"fmt"
 // 	"io"
+// 	"log"
 // 	"mime"
 // 	"mime/multipart"
 // 	"net/http"
 // 	"net/http/httputil"
 // 	"net/url"
 // 	"strings"
+// 	"sync"
+// 	"time"
 
 // 	"github.com/gin-gonic/gin"
 // )
@@ -31,7 +34,7 @@ package main
 // }
 
 // func proxy(c *gin.Context) {
-// 	remote, err := url.Parse("http://192.168.1.13")
+// 	remote, err := url.Parse("http://103.20.97.127:8080")
 // 	if err != nil {
 // 		panic(err)
 // 	}
@@ -117,12 +120,27 @@ package main
 // 		resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 // 		return nil
 // 	}
-
+// 	log.Println(count)
 // 	proxy.ServeHTTP(c.Writer, c.Request)
 // }
 
+// var count int
 // func main() {
-// 	r := gin.Default()
-// 	r.Any("/*proxyPath", proxy)
-// 	r.Run(":8080")
+// 	go func() {
+// 		r := gin.Default()
+// 		r.GET("/hihi", func(ctx *gin.Context) {
+// 			var mu sync.Mutex
+// 			mu.Lock()
+// 			count++
+// 			time.Sleep(time.Second * 10)
+// 			mu.Unlock()
+// 		})
+// 		r.Run(":8080")
+// 	}()
+// 	go func() {
+// 		r := gin.Default()
+// 		r.Any("/*proxyPath", proxy)
+// 		r.Run(":8081")
+// 	}()
+// 	select{}
 // }

@@ -20,28 +20,14 @@ type Security struct {
 }
 
 func (s *Security) Validate() ListError {
-	errors := make(ListError, 0)
-	if s.Enable {
-		if err := s.validateUsername(); err != nil {
-			errors = append(errors, err)
-		}
-		if err := s.validatePassword(); err != nil {
-			errors = append(errors, err)
-		}
-		if err := s.validateManagerIp(); err != nil {
-			errors = append(errors, err)
-		}
-		if err := s.validateMaskType(); err != nil {
-			errors = append(errors, err)
-		}
-		if err := s.validateMaskHtml(); err != nil {
-			errors = append(errors, err)
-		}
-		if err := s.validateMaskJson(); err != nil {
-			errors = append(errors, err)
-		}
-	}
-	if len(errors) > 0 {
+	if errors := Validate(
+		s.validateUsername(),
+		s.validatePassword(),
+		s.validateManagerIp(),
+		s.validateMaskType(),
+		s.validateMaskHtml(),
+		s.validateMaskJson(),
+	); len(errors) > 0 {
 		return errors
 	}
 	return nil
@@ -49,21 +35,21 @@ func (s *Security) Validate() ListError {
 
 func (s *Security) validateUsername() error {
 	if len(s.Username) == 0 {
-		return utils.NewProxyError("Security.Username", "Username is required when security enabled")
+		return utils.NewServerError("Security.Username", "Username is required when security enabled")
 	}
 	return nil
 }
 
 func (s *Security) validatePassword() error {
 	if len(s.Password) < 8 {
-		return utils.NewProxyError("Security.Password", "Password length must be greater than or equal to 8 when security is enabled")
+		return utils.NewServerError("Security.Password", "Password length must be greater than or equal to 8 when security is enabled")
 	}
 	return nil
 }
 
 func (s *Security) validateManagerIp() error {
 	if net.ParseIP(s.ManagerIp) == nil {
-		return utils.NewProxyError("Security.ManagerIp", "Invalid IP")
+		return utils.NewServerError("Security.Manager.IP", "Invalid IP")
 	}
 	return nil
 }
@@ -77,7 +63,7 @@ func (s *Security) validateMaskType() error {
 			},
 			s.MaskType,
 		) {
-			return utils.NewProxyError("Security.MaskType", "Must be 'html' or 'json'")
+			return utils.NewServerError("Security.Mask.Type", "Must be 'html' or 'json'")
 		}
 	}
 	return nil
@@ -87,13 +73,13 @@ func (s *Security) validateMaskHtml() error {
 	if s.MaskStatus && s.MaskType == "html" {
 		info, err := utils.CheckFileExists(s.MaskHtml)
 		if err != nil {
-			return utils.NewProxyError("Security.MaskHtml", err.Error())
+			return utils.NewServerError("Security.Mask.Html", err.Error())
 		}
 		if info.IsDir() {
-			return utils.NewProxyError("Security.MaskHtml", "This path is directory, .html file is required")
+			return utils.NewServerError("Security.Mask.Html", "This path is directory, .html file is required")
 		}
 		if utils.GetExtension(s.MaskHtml) != ".html" {
-			return utils.NewProxyError("Security.MaskHtml", "Extension is not a .html")
+			return utils.NewServerError("Security.MaskH.tml", "Extension is not a .html")
 		}
 	}
 	return nil
@@ -103,17 +89,17 @@ func (s *Security) validateMaskJson() error {
 	if s.MaskStatus && s.MaskType == "json" {
 		info, err := utils.CheckFileExists(s.MaskJson)
 		if err != nil {
-			return utils.NewProxyError("Security.MaskJson", err.Error())
+			return utils.NewServerError("Security.Mask.Json", err.Error())
 		}
 		if info.IsDir() {
-			return utils.NewProxyError("Security.MaskJson", "This path is directory, .json file is required")
+			return utils.NewServerError("Security.Mask.Json", "This path is directory, .json file is required")
 		}
 		if utils.GetExtension(s.MaskJson) != ".json" {
-			return utils.NewProxyError("Security.MaskJson", "Extension is not a .json")
+			return utils.NewServerError("Security.Mask.Json", "Extension is not a .json")
 		}
 		var result gin.H
 		if err := utils.ReadJson(s.MaskJson, &result); err != nil {
-			return utils.NewProxyError("Security.MaskJson", err.Error())
+			return utils.NewServerError("Security.Mask.Json", err.Error())
 		}
 	}
 	return nil
