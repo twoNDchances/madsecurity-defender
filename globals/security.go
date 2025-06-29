@@ -13,7 +13,7 @@ type Security struct {
 	Username   string
 	Password   string
 	ManagerIp  string
-	MaskStatus bool
+	MaskEnable bool
 	MaskType   string
 	MaskHtml   string
 	MaskJson   string
@@ -55,7 +55,7 @@ func (s *Security) validateManagerIp() error {
 }
 
 func (s *Security) validateMaskType() error {
-	if s.MaskStatus {
+	if s.MaskEnable {
 		if !slices.Contains(
 			ListString{
 				"html",
@@ -70,7 +70,7 @@ func (s *Security) validateMaskType() error {
 }
 
 func (s *Security) validateMaskHtml() error {
-	if s.MaskStatus && s.MaskType == "html" {
+	if s.MaskEnable && s.MaskType == "html" {
 		info, err := utils.CheckFileExists(s.MaskHtml)
 		if err != nil {
 			return utils.NewServerError("Security.Mask.Html", err.Error())
@@ -86,7 +86,7 @@ func (s *Security) validateMaskHtml() error {
 }
 
 func (s *Security) validateMaskJson() error {
-	if s.MaskStatus && s.MaskType == "json" {
+	if s.MaskEnable && s.MaskType == "json" {
 		info, err := utils.CheckFileExists(s.MaskJson)
 		if err != nil {
 			return utils.NewServerError("Security.Mask.Json", err.Error())

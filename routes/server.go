@@ -19,31 +19,32 @@ func RouteServer(router *gin.Engine, server *globals.Server, security *globals.S
 	prefix := router.Group(server.Prefix)
 	{
 		if security.Enable {
-			prefix.Use(
-				middlewares.Inspect(security),
-			)
-			prefix.Use(
-				middlewares.Authenticate(
-					security.Username,
-					security.Password,
-				),
-			)
+			prefix.Use(middlewares.Inspect(security))
+			prefix.Use(middlewares.Authenticate(security.Username, security.Password, security))
 		}
-		prefix.GET(server.Health, controllers.ReturnHealth)
-		prefix.GET(server.Sync, controllers.ReturnSynchronization(storage))
 		middlewareController := prefix.Use(
 			middlewares.Allow(),
 		)
 		routes := []Route{
 			{
-				server.ApplyMethod,
-				server.Apply,
-				controllers.ReturnApplication(storage),
+				method:  server.HealthMethod,
+				path:    server.Health,
+				handler: controllers.ReturnHealth,
 			},
 			{
-				server.RevokeMethod,
-				server.Revoke,
-				controllers.ReturnRevocation(storage),
+				method:  server.SyncMethod,
+				path:    server.Sync,
+				handler: controllers.ReturnSynchronization(security),
+			},
+			{
+				method:  server.ApplyMethod,
+				path:    server.Apply,
+				handler: controllers.ReturnApplication(security, storage),
+			},
+			{
+				method:  server.RevokeMethod,
+				path:    server.Revoke,
+				handler: controllers.ReturnRevocation(security, storage),
 			},
 		}
 		for _, route := range routes {

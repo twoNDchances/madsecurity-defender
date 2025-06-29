@@ -16,7 +16,7 @@ var schemeSupported = ListString{
 type Backend struct {
 	Scheme string
 	Host   string
-	Port   uint32
+	Port   int
 	Path   string
 }
 
@@ -51,8 +51,8 @@ func (b *Backend) validateHost() error {
 }
 
 func (b *Backend) validatePort() error {
-	if b.Port <= 0 || b.Port >= ^uint32(0) {
-		return utils.NewProxyError("Backend.Port", "Must in range 1 -> 4294967295")
+	if b.Port <= 0 || b.Port >= 100000 {
+		return utils.NewProxyError("Backend.Port", "Must in range 1 -> 99999")
 	}
 	return nil
 }

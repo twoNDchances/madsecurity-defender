@@ -14,20 +14,20 @@ func ReturnHealth(context *gin.Context) {
 	health.Health(context)
 }
 
-func ReturnSynchronization(storage *globals.Storage) gin.HandlerFunc  {
+func ReturnSynchronization(security *globals.Security) gin.HandlerFunc  {
 	return func(context *gin.Context) {
-		sync.Sync(context, storage)
+		sync.Sync(context, security)
 	}
 }
 
-func ReturnApplication(storage *globals.Storage) gin.HandlerFunc {
+func ReturnApplication(security *globals.Security, storage *globals.Storage) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		apply.Apply(context, storage)
+		apply.Apply(context, security, storage)
 	}
 }
 
-func ReturnRevocation(storage *globals.Storage) gin.HandlerFunc {
+func ReturnRevocation(security *globals.Security, storage *globals.Storage) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		revoke.Revoke(context, storage)
+		revoke.Revoke(context, security, storage)
 	}
 }

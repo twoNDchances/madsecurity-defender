@@ -13,7 +13,7 @@ func PrepareServer() (*globals.Server, bool) {
 		log.Println(utils.NewServerError("TLS.Enable", err.Error()))
 		status = false
 	}
-	port, err := utils.ToUint(globals.ServerVars["port"])
+	port, err := utils.ToInt(globals.ServerVars["port"])
 	if err != nil {
 		log.Println(utils.NewServerError("Port", err.Error()))
 		status = false
@@ -22,14 +22,20 @@ func PrepareServer() (*globals.Server, bool) {
 		return nil, status
 	}
 	server := globals.Server{
-		TlsEnable:    enable,
-		TlsKey:       globals.ServerVars["tls.key"],
-		TlsCrt:       globals.ServerVars["tls.crt"],
-		Host:         globals.ServerVars["host"],
-		Port:         port,
+		Entry: globals.Entry{
+			TLS: globals.TLS{
+				Enable: enable,
+				Key:    globals.ServerVars["tls.key"],
+				Crt:    globals.ServerVars["tls.crt"],
+			},
+			Host: globals.ServerVars["host"],
+			Port: port,
+		},
 		Prefix:       globals.ServerVars["prefix"],
 		Health:       globals.ServerVars["health"],
+		HealthMethod: globals.ServerVars["health.method"],
 		Sync:         globals.ServerVars["sync"],
+		SyncMethod:   globals.ServerVars["sync.method"],
 		Apply:        globals.ServerVars["apply"],
 		ApplyMethod:  globals.ServerVars["apply.method"],
 		Revoke:       globals.ServerVars["revoke"],

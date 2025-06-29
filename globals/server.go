@@ -7,6 +7,18 @@ import (
 	"strings"
 )
 
+type TLS struct {
+	Enable bool
+	Key    string
+	Crt    string
+}
+
+type Entry struct {
+	TLS  TLS
+	Host string
+	Port int
+}
+
 var methods = ListString{
 	"post",
 	"put",
@@ -15,14 +27,12 @@ var methods = ListString{
 }
 
 type Server struct {
-	TlsEnable    bool
-	TlsKey       string
-	TlsCrt       string
-	Host         string
-	Port         uint32
+	Entry        Entry
 	Prefix       string
 	Health       string
+	HealthMethod string
 	Sync         string
+	SyncMethod   string
 	Apply        string
 	ApplyMethod  string
 	Revoke       string
@@ -43,41 +53,41 @@ func (p *Server) Validate() ListError {
 	return nil
 }
 
-func (p *Server) validateKeyAndCrt() error {
-	if p.TlsEnable {
-		keyInfo, err := utils.CheckFileExists(p.TlsKey)
+func (s *Server) validateKeyAndCrt() error {
+	if s.Entry.TLS.Enable {
+		keyInfo, err := utils.CheckFileExists(s.Entry.TLS.Key)
 		if err != nil {
 			return utils.NewServerError("Key", err.Error())
 		}
 		if keyInfo.IsDir() {
 			return utils.NewServerError("Key", "This path is directory, .key file is required")
 		}
-		if utils.GetExtension(p.TlsKey) != ".key" {
+		if utils.GetExtension(s.Entry.TLS.Key) != ".key" {
 			return utils.NewServerError("Key", "Extension is not a .key")
 		}
 
-		crtInfo, err := utils.CheckFileExists(p.TlsCrt)
+		crtInfo, err := utils.CheckFileExists(s.Entry.TLS.Crt)
 		if err != nil {
 			return utils.NewServerError("Crt", err.Error())
 		}
 		if crtInfo.IsDir() {
 			return utils.NewServerError("Crt", "This path is directory, .crt file is required")
 		}
-		if utils.GetExtension(p.TlsCrt) != ".crt" {
+		if utils.GetExtension(s.Entry.TLS.Crt) != ".crt" {
 			return utils.NewServerError("Crt", "Extension is not a .crt")
 		}
 	}
 	return nil
 }
 
-func (p *Server) validateHost() error {
-	if p.Host == "" {
+func (s *Server) validateHost() error {
+	if s.Entry.Host == "" {
 		return nil
 	}
-	if p.Host == "0.0.0.0" {
+	if s.Entry.Host == "0.0.0.0" {
 		return nil
 	}
-	if net.ParseIP(p.Host) == nil {
+	if net.ParseIP(s.Entry.Host) == nil {
 		return utils.NewServerError("Host", "Invalid IP")
 	}
 	addrs, err := net.InterfaceAddrs()
@@ -89,27 +99,27 @@ func (p *Server) validateHost() error {
 		if !ok || ipNet.IP.To4() == nil {
 			continue
 		}
-		if ipNet.IP.String() == p.Host {
+		if ipNet.IP.String() == s.Entry.Host {
 			return nil
 		}
 	}
 	return utils.NewServerError("Host", "Invalid host")
 }
 
-func (p *Server) validatePort() error {
-	if p.Port <= 0 || p.Port >= ^uint32(0) {
-		return utils.NewServerError("Port", "Must in range 1 -> 4294967295")
+func (s *Server) validatePort() error {
+	if s.Entry.Port <= 0 || s.Entry.Port >= 100000 {
+		return utils.NewServerError("Port", "Must in range 1 -> 99999")
 	}
 	return nil
 }
 
-func (p *Server) validatePath() error {
+func (s *Server) validatePath() error {
 	paths := DictString{
-		"Prefix": p.Prefix,
-		"Health": p.Health,
-		"Sync":   p.Sync,
-		"Apply":  p.Apply,
-		"Revoke": p.Revoke,
+		"Prefix": s.Prefix,
+		"Health": s.Health,
+		"Sync":   s.Sync,
+		"Apply":  s.Apply,
+		"Revoke": s.Revoke,
 	}
 	for name, path := range paths {
 		if name == "Prefix" && len(path) == 0 {
@@ -122,17 +132,31 @@ func (p *Server) validatePath() error {
 	return nil
 }
 
-func (p *Server) validateMethod(route string) error {
+func (s *Server) validateMethod(route string) error {
 	errorMsg := "Only support 'post', 'put', 'patch' or 'delete'"
+	if route == "health" {
+		if !slices.Contains(methods, strings.ToLower(s.HealthMethod)) {
+			return utils.NewServerError("Health.Method", errorMsg)
+		}
+	}
+	if route == "sync" {
+		if !slices.Contains(methods, strings.ToLower(s.SyncMethod)) {
+			return utils.NewServerError("Sync.Method", errorMsg)
+		}
+	}
 	if route == "apply" {
-		if !slices.Contains(methods, strings.ToLower(p.ApplyMethod)) {
+		if !slices.Contains(methods, strings.ToLower(s.ApplyMethod)) {
 			return utils.NewServerError("Apply.Method", errorMsg)
 		}
 	}
 	if route == "revoke" {
-		if !slices.Contains(methods, strings.ToLower(p.RevokeMethod)) {
+		if !slices.Contains(methods, strings.ToLower(s.RevokeMethod)) {
 			return utils.NewServerError("Apply.Method", errorMsg)
 		}
 	}
 	return nil
+}
+
+func (s *Server) GetEntry() Entry {
+	return s.Entry
 }

@@ -10,15 +10,10 @@ import (
 func Inspect(security *globals.Security) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		if context.RemoteIP() != security.ManagerIp {
-			if security.MaskStatus {
-				if security.MaskType == "html" {
-					abort.NotFoundHtml(context, security.MaskHtml)
-				}
-				if security.MaskType == "json" {
-					abort.NotFoundJson(context, security.MaskJson)
-				}
+			if security.MaskEnable {
+				abort.Mask(context, security)
 			} else {
-				abort.Unauthorized(context)
+				abort.Unauthorized(context, security)
 			}
 			return
 		}
@@ -26,12 +21,12 @@ func Inspect(security *globals.Security) gin.HandlerFunc {
 	}
 }
 
-func Authenticate(username, password string) gin.HandlerFunc {
+func Authenticate(username, password string, security *globals.Security) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		u, p, ok := context.Request.BasicAuth()
 		if !ok || u != username || p != password {
 			context.Header("WWW-Authenticate", `Basic realm="Restricted"`)
-			abort.Unauthorized(context)
+			abort.Unauthorized(context, security)
 			return
 		}
 		context.Next()

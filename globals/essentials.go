@@ -1,6 +1,9 @@
 package globals
 
-import "sync"
+import (
+	"sort"
+	"sync"
+)
 
 var (
 	IsPaused bool
@@ -39,4 +42,10 @@ func Validate(validators ...error) ListError {
 		}
 	}
 	return errors
+}
+
+func SortGroup(groups []Group) {
+	sort.Slice(groups, func(i, j int) bool {
+		return groups[i].ExecutionOrder < groups[j].ExecutionOrder
+	})
 }

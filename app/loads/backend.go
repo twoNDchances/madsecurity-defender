@@ -7,7 +7,7 @@ import (
 )
 
 func PrepareBackend() (*globals.Backend, bool) {
-	port, err := utils.ToUint(globals.BackendVars["port"])
+	port, err := utils.ToInt(globals.BackendVars["port"])
 	status := true
 	if err != nil {
 		log.Println(utils.NewProxyError("Backend.Port", err.Error()))

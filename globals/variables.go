@@ -21,7 +21,9 @@ var (
 		"port":          os.Getenv("DEFENDER_SERVER_PORT"),
 		"prefix":        os.Getenv("DEFENDER_SERVER_PREFIX"),
 		"health":        os.Getenv("DEFENDER_SERVER_HEALTH"),
+		"health.method": os.Getenv("DEFENDER_SERVER_HEALTH_METHOD"),
 		"sync":          os.Getenv("DEFENDER_SERVER_SYNC"),
+		"sync.method":   os.Getenv("DEFENDER_SERVER_SYNC_METHOD"),
 		"apply":         os.Getenv("DEFENDER_SERVER_APPLY"),
 		"apply.method":  os.Getenv("DEFENDER_SERVER_APPLY_METHOD"),
 		"revoke":        os.Getenv("DEFENDER_SERVER_REVOKE"),
@@ -58,11 +60,13 @@ var (
 	}
 
 	ProxyVars = DictString{
-		"tls.enable": os.Getenv("DEFENDER_PROXY_TLS_ENABLE"),
-		"tls.key":    os.Getenv("DEFENDER_PROXY_TLS_KEY"),
-		"tls.crt":    os.Getenv("DEFENDER_PROXY_TLS_CRT"),
-		"host":       os.Getenv("DEFENDER_PROXY_HOST"),
-		"port":       os.Getenv("DEFENDER_PROXY_PORT"),
+		"tls.enable":      os.Getenv("DEFENDER_PROXY_TLS_ENABLE"),
+		"tls.key":         os.Getenv("DEFENDER_PROXY_TLS_KEY"),
+		"tls.crt":         os.Getenv("DEFENDER_PROXY_TLS_CRT"),
+		"host":            os.Getenv("DEFENDER_PROXY_HOST"),
+		"port":            os.Getenv("DEFENDER_PROXY_PORT"),
+		"violation.score": os.Getenv("DEFENDER_PROXY_VIOLATION_SCORE"),
+		"violation.level": os.Getenv("DEFENDER_PROXY_VIOLATION_LEVEL"),
 	}
 
 	BackendVars = DictString{
@@ -107,8 +111,8 @@ func CheckEmpty() bool {
 		"security": SecurityVars,
 		"log":      LogVars,
 		"storage":  StorageVars,
-		// "proxy":    ProxyVars,
-		// "backend":  BackendVars,
+		"proxy":    ProxyVars,
+		"backend":  BackendVars,
 	})
 	ok := true
 	for key, value := range vars {

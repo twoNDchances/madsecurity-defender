@@ -8,12 +8,12 @@ import (
 
 func PrepareStorage() (*globals.Storage, bool) {
 	status := true
-	port, err := utils.ToUint(globals.StorageVars["redis.port"])
+	port, err := utils.ToInt(globals.StorageVars["redis.port"])
 	if err != nil {
 		log.Println(utils.NewServerError("Storage.Redis.Port", err.Error()))
 		status = false
 	}
-	database, err := utils.ToUint(globals.StorageVars["redis.database"])
+	database, err := utils.ToInt(globals.StorageVars["redis.database"])
 	if err != nil {
 		log.Println(utils.NewServerError("Storage.Redis.Database", err.Error()))
 		status = false

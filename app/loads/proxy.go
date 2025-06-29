@@ -13,20 +13,36 @@ func PrepareProxy() (*globals.Proxy, bool) {
 		log.Println(utils.NewProxyError("TLS.Enable", err.Error()))
 		status = false
 	}
-	port, err := utils.ToUint(globals.ProxyVars["port"])
+	port, err := utils.ToInt(globals.ProxyVars["port"])
 	if err != nil {
 		log.Println(utils.NewProxyError("Port", err.Error()))
+		status = false
+	}
+	score, err := utils.ToInt(globals.ProxyVars["violation.score"])
+	if err != nil {
+		log.Println(utils.NewProxyError("Violation.Score", err.Error()))
+		status = false
+	}
+	level, err := utils.ToInt(globals.ProxyVars["violation.level"])
+	if err != nil {
+		log.Println(utils.NewProxyError("Violation.Level", err.Error()))
 		status = false
 	}
 	if !status {
 		return nil, status
 	}
 	proxy := globals.Proxy{
-		TlsEnable:    enable,
-		TlsKey:       globals.ProxyVars["tls.key"],
-		TlsCrt:       globals.ProxyVars["tls.crt"],
-		Host:         globals.ProxyVars["host"],
-		Port:         port,
+		Entry: globals.Entry{
+			TLS: globals.TLS{
+				Enable: enable,
+				Key:    globals.ProxyVars["tls.key"],
+				Crt:    globals.ProxyVars["tls.crt"],
+			},
+			Host: globals.ProxyVars["host"],
+			Port: port,
+		},
+		ViolationScore: score,
+		ViolationLevel: level,
 	}
 	if errors := proxy.Validate(); errors != nil {
 		for _, err := range errors {

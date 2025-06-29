@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"madsecurity-defender/globals"
-	"madsecurity-defender/services/controllers/backend/pass"
+	"madsecurity-defender/services/controllers/proxy/pass"
 
 	"github.com/gin-gonic/gin"
 )

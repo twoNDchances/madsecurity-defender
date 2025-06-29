@@ -24,6 +24,14 @@ func Check(server *globals.Server, security *globals.Security) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		correctMethod := true
 		switch context.FullPath() {
+		case fmt.Sprintf("%s%s", server.Prefix, server.Health):
+			if !strings.EqualFold(context.Request.Method, server.HealthMethod) {
+				correctMethod = false
+			}
+		case fmt.Sprintf("%s%s", server.Prefix, server.Sync):
+			if !strings.EqualFold(context.Request.Method, server.SyncMethod) {
+				correctMethod = false
+			}
 		case fmt.Sprintf("%s%s", server.Prefix, server.Apply):
 			if !strings.EqualFold(context.Request.Method, server.ApplyMethod) {
 				correctMethod = false
@@ -36,16 +44,11 @@ func Check(server *globals.Server, security *globals.Security) gin.HandlerFunc {
 			correctMethod = false
 		}
 		if !correctMethod {
-			if security.MaskStatus {
-				if security.MaskType == "html" {
-					abort.NotFoundHtml(context, security.MaskHtml)
-				}
-				if security.MaskType == "json" {
-					abort.NotFoundJson(context, security.MaskJson)
-				}
+			if security.MaskEnable {
+				abort.Mask(context, security)
+			} else {
+				abort.MethodNotAllowed(context, security)
 			}
-			abort.MethodNotAllowed(context)
-			return
 		}
 		context.Next()
 	}

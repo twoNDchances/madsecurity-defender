@@ -16,6 +16,10 @@ type Revocation struct {
 	Words     ListUint `json:"words"`
 }
 
+// ##############################################
+// ##############################################
+// ##############################################
+
 type Group struct {
 	ID             uint     `json:"id"`
 	ExecutionOrder uint     `json:"execution_order"`
@@ -28,6 +32,14 @@ type Group struct {
 func (g Group) GetID() uint {
 	return g.ID
 }
+
+func (g Group) GetHashID() uint {
+	return g.GetID()
+}
+
+// ##############################################
+// ##############################################
+// ##############################################
 
 type Rule struct {
 	ID                  uint    `json:"id"`
@@ -55,6 +67,10 @@ func (r Rule) GetID() uint {
 	return r.ID
 }
 
+// ##############################################
+// ##############################################
+// ##############################################
+
 type Target struct {
 	ID                  uint    `json:"id"`
 	Name                string  `json:"name"`
@@ -73,6 +89,10 @@ func (t Target) GetID() uint {
 	return t.ID
 }
 
+// ##############################################
+// ##############################################
+// ##############################################
+
 type Wordlist struct {
 	ID    uint
 	Name  string
@@ -82,6 +102,10 @@ type Wordlist struct {
 func (w Wordlist) GetID() uint {
 	return w.ID
 }
+
+// ##############################################
+// ##############################################
+// ##############################################
 
 type Word struct {
 	ID         uint

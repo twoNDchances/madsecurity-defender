@@ -1,20 +1,19 @@
 package main
 
 // import (
-// 	"bytes"
-// 	"fmt"
-// 	"io"
-// 	"log"
-// 	"mime"
-// 	"mime/multipart"
-// 	"net/http"
-// 	"net/http/httputil"
-// 	"net/url"
-// 	"strings"
-// 	"sync"
-// 	"time"
+	// 	"bytes"
+	// 	"fmt"
+	// 	"io"
+	// 	"mime"
+	// 	"mime/multipart"
+	// 	"net/http"
+	// 	"net/http/httputil"
+	// 	"net/url"
+	// 	"strings"
 
-// 	"github.com/gin-gonic/gin"
+	// "log"
+
+	// "github.com/gin-gonic/gin"
 // )
 
 // func getBoundary(contentType string) string {
@@ -120,27 +119,11 @@ package main
 // 		resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 // 		return nil
 // 	}
-// 	log.Println(count)
 // 	proxy.ServeHTTP(c.Writer, c.Request)
 // }
 
-// var count int
 // func main() {
-// 	go func() {
-// 		r := gin.Default()
-// 		r.GET("/hihi", func(ctx *gin.Context) {
-// 			var mu sync.Mutex
-// 			mu.Lock()
-// 			count++
-// 			time.Sleep(time.Second * 10)
-// 			mu.Unlock()
-// 		})
-// 		r.Run(":8080")
-// 	}()
-// 	go func() {
-// 		r := gin.Default()
-// 		r.Any("/*proxyPath", proxy)
-// 		r.Run(":8081")
-// 	}()
-// 	select{}
+// 	r := gin.Default()
+// 	r.Any("/abc/xyz", func(ctx *gin.Context) {log.Println(ctx.Request.URL.Path)})
+// 	r.Run(":8080")
 // }

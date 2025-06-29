@@ -5,4 +5,5 @@ type (
 	ListUint   []uint
 	ListError  []error
 	DictString map[string]string
+	DictAny    map[string]interface{}
 )

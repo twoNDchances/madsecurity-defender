@@ -22,7 +22,7 @@ func PrepareSecurity() (*globals.Security, bool) {
 		Username:   globals.SecurityVars["username"],
 		Password:   globals.SecurityVars["password"],
 		ManagerIp:  globals.SecurityVars["manager.ip"],
-		MaskStatus: maskEnable,
+		MaskEnable: maskEnable,
 		MaskType:   globals.SecurityVars["mask.type"],
 		MaskHtml:   globals.SecurityVars["mask.html"],
 		MaskJson:   globals.SecurityVars["mask.json"],

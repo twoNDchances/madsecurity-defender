@@ -6,11 +6,9 @@ import (
 )
 
 type Proxy struct {
-	TlsEnable bool
-	TlsKey    string
-	TlsCrt    string
-	Host      string
-	Port      uint32
+	Entry Entry
+	ViolationScore int
+	ViolationLevel int
 }
 
 func (p *Proxy) Validate() ListError {
@@ -18,6 +16,8 @@ func (p *Proxy) Validate() ListError {
 		p.validateKeyAndCrt(),
 		p.validateHost(),
 		p.validatePort(),
+		p.validateViolationScore(),
+		p.validateViolationLevel(),
 	); len(errors) > 0 {
 		return errors
 	}
@@ -25,26 +25,26 @@ func (p *Proxy) Validate() ListError {
 }
 
 func (p *Proxy) validateKeyAndCrt() error {
-	if p.TlsEnable {
-		keyInfo, err := utils.CheckFileExists(p.TlsKey)
+	if p.Entry.TLS.Enable {
+		keyInfo, err := utils.CheckFileExists(p.Entry.TLS.Key)
 		if err != nil {
 			return utils.NewProxyError("Key", err.Error())
 		}
 		if keyInfo.IsDir() {
 			return utils.NewProxyError("Key", "This path is directory, .key file is required")
 		}
-		if utils.GetExtension(p.TlsKey) != ".key" {
+		if utils.GetExtension(p.Entry.TLS.Key) != ".key" {
 			return utils.NewProxyError("Key", "Extension is not a .key")
 		}
 
-		crtInfo, err := utils.CheckFileExists(p.TlsCrt)
+		crtInfo, err := utils.CheckFileExists(p.Entry.TLS.Crt)
 		if err != nil {
 			return utils.NewProxyError("Crt", err.Error())
 		}
 		if crtInfo.IsDir() {
 			return utils.NewProxyError("Crt", "This path is directory, .crt file is required")
 		}
-		if utils.GetExtension(p.TlsCrt) != ".crt" {
+		if utils.GetExtension(p.Entry.TLS.Crt) != ".crt" {
 			return utils.NewProxyError("Crt", "Extension is not a .crt")
 		}
 	}
@@ -52,13 +52,13 @@ func (p *Proxy) validateKeyAndCrt() error {
 }
 
 func (p *Proxy) validateHost() error {
-	if p.Host == "" {
+	if p.Entry.Host == "" {
 		return nil
 	}
-	if p.Host == "0.0.0.0" {
+	if p.Entry.Host == "0.0.0.0" {
 		return nil
 	}
-	if net.ParseIP(p.Host) == nil {
+	if net.ParseIP(p.Entry.Host) == nil {
 		return utils.NewProxyError("Host", "Invalid IP")
 	}
 	addrs, err := net.InterfaceAddrs()
@@ -70,7 +70,7 @@ func (p *Proxy) validateHost() error {
 		if !ok || ipNet.IP.To4() == nil {
 			continue
 		}
-		if ipNet.IP.String() == p.Host {
+		if ipNet.IP.String() == p.Entry.Host {
 			return nil
 		}
 	}
@@ -78,8 +78,26 @@ func (p *Proxy) validateHost() error {
 }
 
 func (p *Proxy) validatePort() error {
-	if p.Port <= 0 || p.Port >= ^uint32(0) {
-		return utils.NewProxyError("Port", "Must in range 1 -> 4294967295")
+	if p.Entry.Port <= 0 || p.Entry.Port >= 100000 {
+		return utils.NewProxyError("Port", "Must in range 1 -> 99999")
+	}
+	return nil
+}
+
+func (p *Proxy) GetEntry() Entry {
+	return p.Entry
+}
+
+func (p *Proxy) validateViolationScore() error {
+	if p.ViolationScore > 999999999 {
+		return utils.NewProxyError("Violation.Score", "999999999 is the highest limit")
+	}
+	return nil
+}
+
+func (p *Proxy) validateViolationLevel() error {
+	if p.ViolationLevel > 999999999 {
+		return utils.NewProxyError("Violation.Level", "999999999 is the highest limit")
 	}
 	return nil
 }

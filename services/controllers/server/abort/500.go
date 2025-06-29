@@ -8,19 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func BadRequest(context *gin.Context, security *globals.Security, err string) {
+func InternalServerError(context *gin.Context, security *globals.Security, err string) {
 	context.Error(errors.New(err))
 	if security.MaskEnable {
 		Mask(context, security)
 		return
 	}
 	context.AbortWithStatusJSON(
-		http.StatusBadRequest,
+		http.StatusInternalServerError,
 		gin.H{
-			"status": false,
-			"message": "bad request",
-			"data": nil,
-			"error": err,
+			"status":  false,
+			"message": "error from server",
+			"data":    nil,
+			"error":   err,
 		},
 	)
 }

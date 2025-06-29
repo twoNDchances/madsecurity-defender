@@ -2,10 +2,13 @@ package globals
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"madsecurity-defender/utils"
 	"net"
 	"slices"
+	"sync"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -17,9 +20,9 @@ var (
 
 type RedisStorage struct {
 	Host     string
-	Port     uint32
+	Port     int
 	Password string
-	Database uint32
+	Database int
 }
 
 func (r *RedisStorage) validate() ListError {
@@ -28,6 +31,7 @@ func (r *RedisStorage) validate() ListError {
 		r.validatePort(),
 		r.validateDatabase(),
 		r.validateConnection(),
+		r.assignValue(),
 	); len(errors) > 0 {
 		return errors
 	}
@@ -45,14 +49,14 @@ func (r *RedisStorage) validateHost() error {
 }
 
 func (r *RedisStorage) validatePort() error {
-	if r.Port <= 0 || r.Port >= ^uint32(0) {
-		return utils.NewServerError("Storage.Redis.Port", "Must in range 1 -> 4294967295")
+	if r.Port <= 0 || r.Port >= 100000 {
+		return utils.NewServerError("Storage.Redis.Port", "Must in range 1 -> 99999")
 	}
 	return nil
 }
 
 func (r *RedisStorage) validateDatabase() error {
-	if r.Database > 2147483647 {
+	if r.Database < 0 || r.Database > 2147483647 {
 		return utils.NewServerError("Storage.Redis.Database", "Out of range")
 	}
 	return nil
@@ -69,6 +73,75 @@ func (r *RedisStorage) validateConnection() error {
 	}
 	return nil
 }
+
+
+func (r *RedisStorage) assignValue() error {
+	var (
+		wg sync.WaitGroup
+		errs ListError
+	)
+	wg.Add(5)
+	go r.getAndSetValue(&wg, "groups", &errs)
+	go r.getAndSetValue(&wg, "rules", &errs)
+	go r.getAndSetValue(&wg, "targets", &errs)
+	go r.getAndSetValue(&wg, "wordlists", &errs)
+	go r.getAndSetValue(&wg, "words", &errs)
+	wg.Wait()
+	if len(errs) > 0 {
+		return utils.NewServerError("Storage.Redis", errors.Join(errs...).Error())
+	}
+	SortGroup(Groups)
+	return nil
+}
+
+func (r *RedisStorage) getAndSetValue(wg *sync.WaitGroup, structName string, errors *ListError) {
+	defer wg.Done()
+	hashKey := fmt.Sprintf("defender_%s", structName)
+	res, err := RedisClient.HGetAll(RedisContext, hashKey).Result()
+	if err != nil {
+		*errors = append(*errors, err)
+		return
+	}
+	for _, r := range res {
+		if structName == "groups" {
+			var group Group
+			if err := json.Unmarshal([]byte(r), &group); err != nil {
+				*errors = append(*errors, err)
+				continue
+			}
+			Groups = append(Groups, group)
+		} else if structName == "rules" {
+			var rule Rule
+			if err := json.Unmarshal([]byte(r), &rule); err != nil {
+				*errors = append(*errors, err)
+				continue
+			}
+			Rules = append(Rules, rule)
+		} else if structName == "targets" {
+			var target Target
+			if err := json.Unmarshal([]byte(r), &target); err != nil {
+				*errors = append(*errors, err)
+				continue
+			}
+			Targets = append(Targets, target)
+		} else if structName == "wordlists" {
+			var wordlist Wordlist
+			if err := json.Unmarshal([]byte(r), &wordlist); err != nil {
+				*errors = append(*errors, err)
+				continue
+			}
+			Wordlists = append(Wordlists, wordlist)
+		} else if structName == "words" {
+			var word Word
+			if err := json.Unmarshal([]byte(r), &word); err != nil {
+				*errors = append(*errors, err)
+				continue
+			}
+			Words = append(Words, word)
+		}
+	}
+}
+
 
 var storageTypes = ListString{
 	"memory",

@@ -11,6 +11,6 @@ func PrepareServerRoute(router *gin.Engine, server *globals.Server, security *gl
 	routes.RouteServer(router, server, security, storage)
 }
 
-func PrepareProxyRoute(router *gin.Engine, backend *globals.Backend) {
-	routes.RouteProxy(router, backend)
+func PrepareProxyRoute(router *gin.Engine, proxy *globals.Proxy, storage *globals.Storage, backend *globals.Backend) {
+	routes.RouteProxy(router, proxy, storage, backend)
 }

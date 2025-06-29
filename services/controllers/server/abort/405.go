@@ -1,19 +1,26 @@
 package abort
 
 import (
+	"errors"
+	"madsecurity-defender/globals"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func MethodNotAllowed(context *gin.Context) {
+func MethodNotAllowed(context *gin.Context, security *globals.Security) {
+	context.Error(errors.New("method mismatch"))
+	if security.MaskEnable {
+		Mask(context, security)
+		return
+	}
 	context.AbortWithStatusJSON(
 		http.StatusMethodNotAllowed,
 		gin.H{
-			"status": false,
+			"status":  false,
 			"message": "method not supported",
-			"data": nil,
-			"error": nil,
+			"data":    nil,
+			"error":   nil,
 		},
 	)
 }

@@ -57,16 +57,18 @@ func Boot() {
 		return
 	}
 
-	if server.Port == proxy.Port {
+	if server.Entry.Port == proxy.Entry.Port {
 		log.Println(utils.NewServerError("Port", "Conflict with [Proxy][Port]"))
 		return
 	}
+
+	log.Println(utils.NewColor(fmt.Sprintf("Storage in use is %s", storage.Type), utils.BLUE))
 
 	gin.SetMode(gin.ReleaseMode)
 
 	go bootServer(server, logging, security, storage)
 
-	go bootProxy(proxy, logging, backend)
+	go bootProxy(proxy, logging, storage, backend)
 
 	select {}
 }
@@ -81,39 +83,53 @@ func bootServer(server *globals.Server, logging *globals.Log, security *globals.
 	defender.NoMethod(middlewares.Check(server, security))
 	loads.PrepareServerRoute(defender, server, security, storage)
 
-	promopt := "Server is listening at"
-	address := fmt.Sprintf("%s:%d", server.Host, server.Port)
-
-	run(server.TlsEnable, promopt, address,
-		utils.NewServerError("Server", defender.Run(address).Error()),
-		utils.NewServerError("Server", defender.RunTLS(address, server.TlsCrt, server.TlsKey).Error()),
-	)
+	promopt("Server", defender, server)
 }
 
-func bootProxy(proxy *globals.Proxy, logging *globals.Log, backend *globals.Backend) {
+func bootProxy(proxy *globals.Proxy, logging *globals.Log, storage *globals.Storage, backend *globals.Backend) {
 	defender := gin.New()
 	defender.Use(gin.Recovery())
 
 	defender.Use(middlewares.Log(logging))
 	defender.Use(middlewares.Prevent())
 
-	loads.PrepareProxyRoute(defender, backend)
+	loads.PrepareProxyRoute(defender, proxy, storage, backend)
 
-	promopt := "Proxy is listening at"
-	address := fmt.Sprintf("%s:%d", proxy.Host, proxy.Port)
-
-	run(proxy.TlsEnable, promopt, address,
-		utils.NewProxyError("Proxy", defender.Run(address).Error()),
-		utils.NewProxyError("Proxy", defender.RunTLS(address, proxy.TlsCrt, proxy.TlsKey).Error()),
-	)
+	promopt("Proxy", defender, proxy)
 }
 
-func run(condition bool, promopt, address string, run, runTLS error) {
-	if !condition {
-		log.Println(utils.NewColor(fmt.Sprintf("%s %s%s", promopt, "http://", address), utils.YELLOW))
-		log.Println(run)
-	} else {
-		log.Println(utils.NewColor(fmt.Sprintf("%s %s%s", promopt, "https://", address), utils.YELLOW))
-		log.Println(runTLS)
+func promopt[T globals.Instructable](entryName string, engine *gin.Engine, entryType T) {
+	var boot func() error
+	promopt := func(scheme string) string {
+		return utils.NewColor(fmt.Sprintf(
+			"%s is serving at %s://%s:%d",
+			entryName,
+			scheme,
+			entryType.GetEntry().Host,
+			entryType.GetEntry().Port,
+		), utils.YELLOW)
 	}
+	address := fmt.Sprintf("%s:%d", entryType.GetEntry().Host, entryType.GetEntry().Port)
+	if entryType.GetEntry().TLS.Enable {
+		log.Println(promopt("https"))
+		boot = func() error {
+			return utils.NewProxyError(
+				entryName,
+				engine.RunTLS(
+					address,
+					entryType.GetEntry().TLS.Crt,
+					entryType.GetEntry().TLS.Key,
+				).Error(),
+			)
+		}
+	} else {
+		log.Println(promopt("http"))
+		boot = func() error {
+			return utils.NewProxyError(
+				entryName,
+				engine.Run(address).Error(),
+			)
+		}
+	}
+	log.Println(boot())
 }
