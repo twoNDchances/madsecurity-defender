@@ -2,50 +2,36 @@ package inmemory
 
 import (
 	"madsecurity-defender/globals"
-	"slices"
 	"sync"
 )
 
-func Add[T globals.Identifiable](wg *sync.WaitGroup, models *[]T, preModels []T, tmpModels *[]T) {
+func Add[T globals.Identifiable](wg *sync.WaitGroup, models *map[uint]T, preModels []T) {
 	defer wg.Done()
 	if len(preModels) == 0 {
 		return
 	}
 	var mutex sync.Mutex
 	mutex.Lock()
-	*tmpModels = (*tmpModels)[:0]
-	exists := make(map[uint]any)
-	for _, m := range *models {
-		exists[m.GetID()] = nil
-	}
 	for _, pre := range preModels {
-		if _, ok := exists[pre.GetID()]; !ok {
-			*tmpModels = append(*tmpModels, pre)
-			exists[pre.GetID()] = nil
+		if _, ok := (*models)[pre.GetID()]; ok {
+			continue
 		}
+		(*models)[pre.GetID()] = pre
 	}
-	*models = append(*models, *tmpModels...)
 	mutex.Unlock()
 }
 
 
-func Remove[T globals.Identifiable](wg *sync.WaitGroup, models *[]T, preModels *globals.ListUint) {
+func Remove[T globals.Identifiable](wg *sync.WaitGroup, models *map[uint]T, preModels *globals.ListUint) {
 	defer wg.Done()
 	if len(*preModels) == 0 {
 		return
 	}
 	var mutex sync.Mutex
 	mutex.Lock()
-	if len(*preModels) == 0 {
-		return
+	for _, pre := range *preModels {
+		delete(*models, pre)
 	}
-	result := (*models)[:0]
-	for _, model := range *models {
-		if !slices.Contains(*preModels, model.GetID()) {
-			result = append(result, model)
-		}
-	}
-	*models = result
 	mutex.Unlock()
 }
 

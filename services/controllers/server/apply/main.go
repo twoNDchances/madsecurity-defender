@@ -20,37 +20,44 @@ func Apply(context *gin.Context, security *globals.Security, storage *globals.St
 	}
 	var wg sync.WaitGroup
 	wg.Add(5)
-	go inmemory.Add(&wg, &globals.Groups, responseApiForm.Groups, &globals.TmpGroups)
-	go inmemory.Add(&wg, &globals.Rules, responseApiForm.Rules, &globals.TmpRules)
-	go inmemory.Add(&wg, &globals.Targets, responseApiForm.Targets, &globals.TmpTargets)
-	go inmemory.Add(&wg, &globals.Wordlists, responseApiForm.Wordlists, &globals.TmpWordlists)
-	go inmemory.Add(&wg, &globals.Words, responseApiForm.Words, &globals.TmpWords)
-	data := gin.H{
-		"group":    len(globals.Groups),
-		"rule":     len(globals.Rules),
-		"target":   len(globals.Targets),
-		"wordlist": len(globals.Wordlists),
-		"word":     len(globals.Words),
-	}
+	go inmemory.Add(&wg, &globals.Groups, responseApiForm.Groups)
+	go inmemory.Add(&wg, &globals.Rules, responseApiForm.Rules)
+	go inmemory.Add(&wg, &globals.Targets, responseApiForm.Targets)
+	go inmemory.Add(&wg, &globals.Wordlists, responseApiForm.Wordlists)
+	go inmemory.Add(&wg, &globals.Words, responseApiForm.Words)
+	data := make(gin.H, 0)
+	var (
+		groups    int64
+		rules     int64
+		targets   int64
+		wordlists int64
+		words     int64
+		errs      globals.ListError
+	)
 	if storage.Type == "redis" {
-		var (
-			groups    int64
-			rules     int64
-			targets   int64
-			wordlists int64
-			words     int64
-			errs      globals.ListError
-		)
 		wg.Add(5)
 		go inredis.Add(&wg, responseApiForm.Groups, "groups", &groups, &errs)
 		go inredis.Add(&wg, responseApiForm.Rules, "rules", &rules, &errs)
 		go inredis.Add(&wg, responseApiForm.Targets, "targets", &targets, &errs)
 		go inredis.Add(&wg, responseApiForm.Wordlists, "wordlists", &wordlists, &errs)
 		go inredis.Add(&wg, responseApiForm.Words, "words", &words, &errs)
+	}
+	wg.Wait()
+	responseApiForm = globals.Application{}
+	switch storage.Type {
+	case "memory":
 		if len(errs) > 0 {
 			abort.InternalServerError(context, security, errors.Join(errs...).Error())
 			return
 		}
+		data = gin.H{
+			"group":    len(globals.Groups),
+			"rule":     len(globals.Rules),
+			"target":   len(globals.Targets),
+			"wordlist": len(globals.Wordlists),
+			"word":     len(globals.Words),
+		}
+	case "redis":
 		data = gin.H{
 			"group":    groups,
 			"rule":     rules,
@@ -59,8 +66,13 @@ func Apply(context *gin.Context, security *globals.Security, storage *globals.St
 			"word":     words,
 		}
 	}
-	wg.Wait()
-	globals.SortGroup(globals.Groups)
+	tmpGroups := make([]globals.Group, 0)
+	for _, group := range globals.ListGroups {
+		if exists, ok := globals.Groups[group.ID]; ok {
+			tmpGroups = append(tmpGroups, exists)
+		}
+	}
+	globals.ListGroups = append(globals.ListGroups, tmpGroups...)
+	globals.SortGroup(globals.ListGroups)
 	complete.OK(context, "applied", data)
-	responseApiForm = globals.Application{}
 }

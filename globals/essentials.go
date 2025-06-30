@@ -10,19 +10,13 @@ var (
 	PauseMtx sync.Mutex
 	PauseCnd = sync.NewCond(&PauseMtx)
 
-	capacity = 100000
+	ListGroups = make([]Group, 0)
 
-	Groups    = make([]Group, 0, capacity)
-	Rules     = make([]Rule, 0, capacity)
-	Targets   = make([]Target, 0, capacity)
-	Wordlists = make([]Wordlist, 0, capacity)
-	Words     = make([]Word, 0, capacity)
-
-	TmpGroups    = make([]Group, 0, capacity)
-	TmpRules     = make([]Rule, 0, capacity)
-	TmpTargets   = make([]Target, 0, capacity)
-	TmpWordlists = make([]Wordlist, 0, capacity)
-	TmpWords     = make([]Word, 0, capacity)
+	Groups    = make(map[uint]Group, 0)
+	Rules     = make(map[uint]Rule, 0)
+	Targets   = make(map[uint]Target, 0)
+	Wordlists = make(map[uint]Wordlist, 0)
+	Words     = make(map[uint]Word, 0)
 )
 
 func ContainsID[T Identifiable](models []Identifiable, id uint) bool {

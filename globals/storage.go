@@ -90,7 +90,7 @@ func (r *RedisStorage) assignValue() error {
 	if len(errs) > 0 {
 		return utils.NewServerError("Storage.Redis", errors.Join(errs...).Error())
 	}
-	SortGroup(Groups)
+	SortGroup(ListGroups)
 	return nil
 }
 
@@ -109,35 +109,36 @@ func (r *RedisStorage) getAndSetValue(wg *sync.WaitGroup, structName string, err
 				*errors = append(*errors, err)
 				continue
 			}
-			Groups = append(Groups, group)
+			Groups[group.ID] = group
+			ListGroups = append(ListGroups, group)
 		} else if structName == "rules" {
 			var rule Rule
 			if err := json.Unmarshal([]byte(r), &rule); err != nil {
 				*errors = append(*errors, err)
 				continue
 			}
-			Rules = append(Rules, rule)
+			Rules[rule.ID] = rule
 		} else if structName == "targets" {
 			var target Target
 			if err := json.Unmarshal([]byte(r), &target); err != nil {
 				*errors = append(*errors, err)
 				continue
 			}
-			Targets = append(Targets, target)
+			Targets[target.ID] = target
 		} else if structName == "wordlists" {
 			var wordlist Wordlist
 			if err := json.Unmarshal([]byte(r), &wordlist); err != nil {
 				*errors = append(*errors, err)
 				continue
 			}
-			Wordlists = append(Wordlists, wordlist)
+			Wordlists[wordlist.ID] = wordlist
 		} else if structName == "words" {
 			var word Word
 			if err := json.Unmarshal([]byte(r), &word); err != nil {
 				*errors = append(*errors, err)
 				continue
 			}
-			Words = append(Words, word)
+			Words[word.ID] = word
 		}
 	}
 }

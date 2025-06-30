@@ -11,7 +11,7 @@ import (
 func findTargetByID(id uint) *globals.Target {
     for i := range globals.Targets {
         if globals.Targets[i].ID == id {
-            return &globals.Targets[i]
+            // return &globals.Targets[i]
         }
     }
     return nil
