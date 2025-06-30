@@ -10,8 +10,7 @@ import (
 
 func RouteProxy(router *gin.Engine, proxy *globals.Proxy, storage *globals.Storage, backend *globals.Backend) {
 	investigation := router.Use(
-		request.InvestigateHeader(proxy),
-		request.InvestigateBody(proxy),
+		request.Investigate(proxy),
 	)
 	{
 		investigation.Any("/*backendPath", controllers.ReturnBackend(backend))
