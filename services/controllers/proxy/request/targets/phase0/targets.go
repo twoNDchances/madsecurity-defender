@@ -8,7 +8,7 @@ import (
 
 func FullRequest(context *gin.Context, target *globals.Target) string {
 	var raw string
-	if target.Phase == 0 && target.Alias == "full-request" && target.Name == "raw" {
+	if target.Phase == 0 && target.Alias == "full-request" && target.Name == "raw" && target.Immutable && target.TargetID != nil {
 
 	}
 	return raw

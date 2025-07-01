@@ -49,7 +49,7 @@ type Rule struct {
 	TargetID            uint    `json:"target_id"`
 	Comparator          string  `json:"comparator"`
 	Inverse             bool    `json:"inverse"`
-	Value               string  `json:"value"`
+	Value               *string  `json:"value"`
 	Action              *string `json:"action"`
 	ActionConfiguration *string `json:"action_configuration"`
 	Severity            *string `json:"severity"`
@@ -81,6 +81,7 @@ type Target struct {
 	Phase               uint8   `json:"phase"`
 	Datatype            string  `json:"datatype"`
 	FinalDatatype       string  `json:"final_datatype"`
+	Immutable           bool    `json:"immutable"`
 	TargetID            *uint   `json:"target_id"`
 	WordlistID          *uint   `json:"wordlist_id"`
 }

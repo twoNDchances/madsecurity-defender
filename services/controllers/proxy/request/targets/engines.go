@@ -9,8 +9,11 @@ import (
 	"madsecurity-defender/globals"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/gin-gonic/gin"
 )
 
 func IndexOf(targets *globals.ListString, index int) string {
@@ -24,6 +27,29 @@ func IndexOf(targets *globals.ListString, index int) string {
         return (*targets)[len(*targets) - 1]
     }
     return (*targets)[index]
+}
+
+func ProcessArrayTarget(context *gin.Context, target *globals.Target) any {
+	targetValue := GetArrayTarget(context, target)
+	if target.EngineConfiguration != nil {
+		if target.FinalDatatype == "array" {}
+		if target.FinalDatatype == "number" {}
+		if target.FinalDatatype == "string" {
+			if *target.Engine == "indexOf" {
+				engineConfiguration, err := strconv.Atoi(*target.EngineConfiguration)
+				if err != nil {
+					context.Error(err)
+					engineConfiguration = 0
+				}
+				return IndexOf(&targetValue, engineConfiguration)
+			}
+		}
+	} else {
+		if target.FinalDatatype == "array" {}
+		if target.FinalDatatype == "number" {}
+		if target.FinalDatatype == "string" {}
+	}
+	return targetValue
 }
 
 func Addition(target float64, number float64) float64 {
@@ -48,6 +74,44 @@ func PowerOf(target float64, number float64) float64 {
 
 func Remainder(target float64, number float64) float64 {
 	return math.Mod(target, number)
+}
+
+func ProcessNumberTarget(context *gin.Context, target *globals.Target) any {
+	targetValue := GetNumberTarget(context, target)
+	if target.EngineConfiguration != nil {
+		if target.FinalDatatype == "array" {}
+		if target.FinalDatatype == "number" {
+			engineConfiguration, err := strconv.ParseFloat(*target.EngineConfiguration, 64)
+			if err != nil {
+				context.Error(err)
+				engineConfiguration = 0
+			}
+			if *target.Engine == "addition" {
+				return Addition(targetValue, engineConfiguration)
+			}
+			if *target.Engine == "subtraction" {
+				return Subtraction(targetValue, engineConfiguration)
+			}
+			if *target.Engine == "multiplication" {
+				return Multiplication(targetValue, engineConfiguration)
+			}
+			if *target.Engine == "division" {
+				return Division(targetValue, engineConfiguration)
+			}
+			if *target.Engine == "powerOf" {
+				return PowerOf(targetValue, engineConfiguration)
+			}
+			if *target.Engine == "remainder" {
+				return Remainder(targetValue, engineConfiguration)
+			}
+		}
+		if target.FinalDatatype == "string" {}
+	} else {
+		if target.FinalDatatype == "array" {}
+		if target.FinalDatatype == "number" {}
+		if target.FinalDatatype == "string" {}
+	}
+	return targetValue
 }
 
 func Lower(target string) string {
@@ -108,4 +172,48 @@ func Hash(target string, algorithm string) string {
 		}
 	}
 	return ""
+}
+
+func ProcessStringTarget(context *gin.Context, target *globals.Target) any {
+	targetValue := GetStringTarget(context, target)
+	if target.EngineConfiguration != nil {
+		if target.FinalDatatype == "array" {}
+		if target.FinalDatatype == "number" {}
+		if target.FinalDatatype == "string" {
+			if *target.Engine == "hash" {
+				return Hash(targetValue, *target.EngineConfiguration)
+			}
+		}
+	} else {
+		if target.FinalDatatype == "array" {}
+		if target.FinalDatatype == "number" {
+			if *target.Engine == "length" {
+				return Length(targetValue)
+			}
+		}
+		if target.FinalDatatype == "string" {
+			if *target.Engine == "lower" {
+				return Lower(targetValue)
+			}
+			if *target.Engine == "upper" {
+				return Upper(targetValue)
+			}
+			if *target.Engine == "capitalize" {
+				return Capitalize(targetValue)
+			}
+			if *target.Engine == "trim" {
+				return Trim(targetValue)
+			}
+			if *target.Engine == "trimLeft" {
+				return TrimLeft(targetValue)
+			}
+			if *target.Engine == "trimRight" {
+				return TrimRight(targetValue)
+			}
+			if *target.Engine == "removeWhitespace" {
+				return RemoveWhitespace(targetValue)
+			}
+		}
+	}
+	return targetValue
 }
