@@ -28,6 +28,26 @@ func PrepareProxy() (*globals.Proxy, bool) {
 		log.Println(utils.NewProxyError("Violation.Level", err.Error()))
 		status = false
 	}
+	notice, err := utils.ToInt(globals.ProxyVars["severity.notice"])
+	if err != nil {
+		log.Println(utils.NewProxyError("Severity.Notice", err.Error()))
+		status = false
+	}
+	warning, err := utils.ToInt(globals.ProxyVars["severity.warning"])
+	if err != nil {
+		log.Println(utils.NewProxyError("Severity.Warning", err.Error()))
+		status = false
+	}
+	erroR, err := utils.ToInt(globals.ProxyVars["severity.error"])
+	if err != nil {
+		log.Println(utils.NewProxyError("Severity.Error", err.Error()))
+		status = false
+	}
+	critical, err := utils.ToInt(globals.ProxyVars["severity.critical"])
+	if err != nil {
+		log.Println(utils.NewProxyError("Severity.Critical", err.Error()))
+		status = false
+	}
 	if !status {
 		return nil, status
 	}
@@ -43,6 +63,12 @@ func PrepareProxy() (*globals.Proxy, bool) {
 		},
 		ViolationScore: score,
 		ViolationLevel: level,
+		Severity: globals.Severity{
+			NOTICE:   notice,
+			WARNING:  warning,
+			ERROR:    erroR,
+			CRITICAL: critical,
+		},
 	}
 	if errors := proxy.Validate(); errors != nil {
 		for _, err := range errors {

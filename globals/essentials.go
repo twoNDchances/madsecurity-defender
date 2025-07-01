@@ -12,11 +12,13 @@ var (
 
 	ListGroups = make([]Group, 0)
 
-	Groups    = make(map[uint]Group, 0)
-	Rules     = make(map[uint]Rule, 0)
-	Targets   = make(map[uint]Target, 0)
-	Wordlists = make(map[uint]Wordlist, 0)
-	Words     = make(map[uint]Word, 0)
+	Groups         = make(map[uint]Group, 0)
+	Rules          = make(map[uint]Rule, 0)
+	Targets        = make(map[uint]Target, 0)
+	Wordlists      = make(map[uint]Wordlist, 0)
+	Words          = make(map[uint]Word, 0)
+	ViolationScore int
+	ViolationLevel int
 )
 
 func ContainsID[T Identifiable](models []Identifiable, id uint) bool {

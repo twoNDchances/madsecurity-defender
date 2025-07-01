@@ -60,13 +60,17 @@ var (
 	}
 
 	ProxyVars = DictString{
-		"tls.enable":      os.Getenv("DEFENDER_PROXY_TLS_ENABLE"),
-		"tls.key":         os.Getenv("DEFENDER_PROXY_TLS_KEY"),
-		"tls.crt":         os.Getenv("DEFENDER_PROXY_TLS_CRT"),
-		"host":            os.Getenv("DEFENDER_PROXY_HOST"),
-		"port":            os.Getenv("DEFENDER_PROXY_PORT"),
-		"violation.score": os.Getenv("DEFENDER_PROXY_VIOLATION_SCORE"),
-		"violation.level": os.Getenv("DEFENDER_PROXY_VIOLATION_LEVEL"),
+		"tls.enable":        os.Getenv("DEFENDER_PROXY_TLS_ENABLE"),
+		"tls.key":           os.Getenv("DEFENDER_PROXY_TLS_KEY"),
+		"tls.crt":           os.Getenv("DEFENDER_PROXY_TLS_CRT"),
+		"host":              os.Getenv("DEFENDER_PROXY_HOST"),
+		"port":              os.Getenv("DEFENDER_PROXY_PORT"),
+		"violation.score":   os.Getenv("DEFENDER_PROXY_VIOLATION_SCORE"),
+		"violation.level":   os.Getenv("DEFENDER_PROXY_VIOLATION_LEVEL"),
+		"severity.notice":   os.Getenv("DEFENDER_PROXY_SEVERITY_NOTICE"),
+		"severity.warning":  os.Getenv("DEFENDER_PROXY_SEVERITY_WARNING"),
+		"severity.error":    os.Getenv("DEFENDER_PROXY_SEVERITY_ERROR"),
+		"severity.critical": os.Getenv("DEFENDER_PROXY_SEVERITY_CRITICAL"),
 	}
 
 	BackendVars = DictString{

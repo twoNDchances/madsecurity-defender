@@ -1,14 +1,16 @@
 package globals
 
 import (
+	"fmt"
 	"madsecurity-defender/utils"
 	"net"
 )
 
 type Proxy struct {
-	Entry Entry
+	Entry          Entry
 	ViolationScore int
 	ViolationLevel int
+	Severity       Severity
 }
 
 func (p *Proxy) Validate() ListError {
@@ -19,6 +21,9 @@ func (p *Proxy) Validate() ListError {
 		p.validateViolationScore(),
 		p.validateViolationLevel(),
 	); len(errors) > 0 {
+		return errors
+	}
+	if errors := p.Severity.validate(); len(errors) > 0 {
 		return errors
 	}
 	return nil
@@ -92,12 +97,46 @@ func (p *Proxy) validateViolationScore() error {
 	if p.ViolationScore > 999999999 {
 		return utils.NewProxyError("Violation.Score", "999999999 is the highest limit")
 	}
+	ViolationScore = p.ViolationScore
 	return nil
 }
 
 func (p *Proxy) validateViolationLevel() error {
-	if p.ViolationLevel > 999999999 {
-		return utils.NewProxyError("Violation.Level", "999999999 is the highest limit")
+	if p.ViolationLevel < 1 || p.ViolationLevel > 999999999 {
+		return utils.NewProxyError("Violation.Level", "Must in range 1 -> 999999999")
+	}
+	ViolationLevel = p.ViolationLevel
+	return nil
+}
+
+type Severity struct {
+	NOTICE   int
+	WARNING  int
+	ERROR    int
+	CRITICAL int
+}
+
+func (s *Severity) validate() ListError {
+	if errors := Validate(
+		s.validateSeverity("Notice"),
+		s.validateSeverity("Warning"),
+		s.validateSeverity("Error"),
+		s.validateSeverity("Critical"),
+	); len(errors) > 0 {
+		return errors
+	}
+	return nil
+}
+
+func (s *Severity) validateSeverity(name string) error {
+	severities := map[string]int{
+		"Notice":   s.NOTICE,
+		"Warning":  s.WARNING,
+		"Error":    s.ERROR,
+		"Critical": s.CRITICAL,
+	}
+	if value := severities[name]; value <= 0 || value >= 100000 {
+		return utils.NewProxyError(fmt.Sprintf("Severity.%s", name), "Must in range 1 -> 99999")
 	}
 	return nil
 }
