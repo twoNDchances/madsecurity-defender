@@ -3,11 +3,11 @@ package execute
 import (
 	"fmt"
 	"madsecurity-defender/globals"
+	"madsecurity-defender/services/controllers/proxy/execute/actions"
 	perform "madsecurity-defender/services/controllers/proxy/execute/rules"
 	"madsecurity-defender/services/controllers/proxy/execute/targets"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase0"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -115,40 +115,18 @@ func Request(context *gin.Context, phase uint8, proxy *globals.Proxy) bool {
 				if rule.Action == nil {
 					continue
 				}
-				switch *rule.Action {
-				case "allow":
-					return true
-				case "deny":
-					return false
-				case "inspect":
-					if rule.Severity == nil {
-						context.Error(fmt.Errorf("rule %d: missing Severity for Inspect action", rule.ID))
-						return false
-					}
-					switch *rule.Severity {
-					case "notice":
-						scoreDefault = scoreDefault + proxy.Severity.NOTICE
-					case "warning":
-						scoreDefault = scoreDefault + proxy.Severity.WARNING
-					case "error":
-						scoreDefault = scoreDefault + proxy.Severity.ERROR
-					case "critical":
-						scoreDefault = scoreDefault + proxy.Severity.CRITICAL
-					}
-				case "request":
-				case "setScore":
-					if rule.ActionConfiguration == nil {
-						context.Error(fmt.Errorf("rule %d: missing Action Configuration for Set Score action", rule.ID))
-						return false
-					}
-					actionConfiguration, err := strconv.Atoi(*rule.ActionConfiguration)
-					if err != nil {
-						context.Error(fmt.Errorf("rule %d: %v", rule.ID, err))
-						return false
-					}
-					score = actionConfiguration
-				case "setLevel":
-				case "report":
+				targetInstace := globals.Targets[rule.TargetID]
+				forceReturn, result := actions.Perform(
+					context,
+					proxy,
+					&targetInstace,
+					&rule,
+					&scoreDefault,
+					&score,
+					&level,
+				)
+				if forceReturn {
+					return result
 				}
 			}
 		}
