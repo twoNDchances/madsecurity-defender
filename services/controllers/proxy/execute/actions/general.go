@@ -112,7 +112,7 @@ func SetLevel(context *gin.Context, rule *globals.Rule, level *int) (bool, bool)
 }
 
 func Report(context *gin.Context, proxy *globals.Proxy, target *globals.Target, rule *globals.Rule) (bool, bool) {
-	body := map[string]interface{}{
+	body := map[string]any{
 		//
 	}
 	request, err := utils.NewHttp("post", "", body)

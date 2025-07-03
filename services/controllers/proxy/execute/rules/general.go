@@ -6,7 +6,6 @@ import (
 	"madsecurity-defender/utils"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -29,6 +28,9 @@ func Similar(context *gin.Context, targets globals.ListString, rule *globals.Rul
 			result = !slices.Contains(words, target)
 		} else {
 			result = slices.Contains(words, target)
+		}
+		if result {
+			break
 		}
 	}
 	return result
@@ -54,7 +56,7 @@ func Equal(context *gin.Context, target float64, rule *globals.Rule) bool {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), "missing Value for Equal comparator"))
 		return result
 	}
-	value, err := strconv.ParseFloat(*rule.Value, 64)
+	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
 		return result
@@ -73,7 +75,7 @@ func GreaterThan(context *gin.Context, target float64, rule *globals.Rule) bool 
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), "missing Value for Greater Than comparator"))
 		return result
 	}
-	value, err := strconv.ParseFloat(*rule.Value, 64)
+	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
 		return result
@@ -92,7 +94,7 @@ func LessThan(context *gin.Context, target float64, rule *globals.Rule) bool {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), "missing Value for Less Than comparator"))
 		return result
 	}
-	value, err := strconv.ParseFloat(*rule.Value, 64)
+	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
 		return result
@@ -111,7 +113,7 @@ func GreaterThanOrEqual(context *gin.Context, target float64, rule *globals.Rule
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), "missing Value for Greater Than Or Equal comparator"))
 		return result
 	}
-	value, err := strconv.ParseFloat(*rule.Value, 64)
+	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
 		return result
@@ -130,7 +132,7 @@ func LessThanOrEqual(context *gin.Context, target float64, rule *globals.Rule) b
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), "missing Value for Less Than Or Equal comparator"))
 		return result
 	}
-	value, err := strconv.ParseFloat(*rule.Value, 64)
+	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
 		return result
@@ -154,12 +156,12 @@ func InRange(context *gin.Context, target float64, rule *globals.Rule) bool {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), "unsatisfactory value for In Range comparator"))
 		return result
 	}
-	value1, err := strconv.ParseFloat(values[0], 64)
+	value1, err := utils.ToFloat64(values[0])
 	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
 		return result
 	}
-	value2, err := strconv.ParseFloat(values[1], 64)
+	value2, err := utils.ToFloat64(values[1])
 	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
 		return result
@@ -241,10 +243,10 @@ func Regex(context *gin.Context, target string, rule *globals.Rule) bool {
 		return result
 	}
 	matched, err := regexp.MatchString(*rule.Value, target)
-    if err != nil {
+	if err != nil {
 		context.Error(utils.NewProxyError(fmt.Sprintf("Rule.%d", rule.ID), err.Error()))
-        return result
-    }
+		return result
+	}
 	if rule.Inverse {
 		result = !matched
 	} else {
@@ -275,6 +277,9 @@ func CheckRegex(context *gin.Context, target string, rule *globals.Rule) bool {
 			result = !matched
 		} else {
 			result = matched
+		}
+		if result {
+			break
 		}
 	}
 	return result

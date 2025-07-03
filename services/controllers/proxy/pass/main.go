@@ -22,13 +22,13 @@ func Pass(context *gin.Context, backend *globals.Backend) {
 		request.Host = remote.Host
 		request.Header = context.Request.Header.Clone()
 
-		var bodyBytes []byte
-		bodyBytes, _ = io.ReadAll(context.Request.Body)
-		context.Request.Body.Close()
+		// var bodyBytes []byte
+		// bodyBytes, _ = io.ReadAll(context.Request.Body)
+		// context.Request.Body.Close()
 		//
-		context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		request.ContentLength = int64(len(bodyBytes))
+		// context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		// request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		// request.ContentLength = int64(len(bodyBytes))
 	}
 	proxy.ModifyResponse = func(response *http.Response) error {
 		bodyBytes, err := io.ReadAll(response.Body)

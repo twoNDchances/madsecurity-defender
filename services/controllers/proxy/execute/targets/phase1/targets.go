@@ -2,8 +2,8 @@ package phase1
 
 import (
 	"madsecurity-defender/globals"
+	"madsecurity-defender/utils"
 	"net"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +69,7 @@ func UrlPort(context *gin.Context, target *globals.Target) float64 {
 		if err != nil {
 			context.Error(err)
 		} else {
-			port, err = strconv.ParseFloat(portString, 64)
+			port, err = utils.ToFloat64(portString)
 			if err != nil {
 				context.Error(err)
 			}

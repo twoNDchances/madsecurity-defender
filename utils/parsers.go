@@ -19,3 +19,11 @@ func ToInt(value string) (int, error) {
 	}
 	return number, nil
 }
+
+func ToFloat64(value string) (float64, error) {
+	number, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0, err
+	}
+	return number, nil
+}

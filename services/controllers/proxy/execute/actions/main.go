@@ -11,7 +11,7 @@ func Perform(
 	proxy *globals.Proxy,
 	target *globals.Target,
 	rule *globals.Rule,
-	scoreDefault *int,
+	defaultScore *int,
 	score *int,
 	level *int,
 ) (bool, bool) {
@@ -22,7 +22,7 @@ func Perform(
 	case "deny":
 		forceReturn, result = Deny()
 	case "inspect":
-		forceReturn, result = Inspect(context, proxy, rule, scoreDefault)
+		forceReturn, result = Inspect(context, proxy, rule, defaultScore)
 	case "request":
 		forceReturn, result = Request(context, target, rule)
 	case "setScore":

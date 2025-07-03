@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"madsecurity-defender/globals"
+	"madsecurity-defender/utils"
 	"math"
 	"slices"
 	"strconv"
@@ -18,23 +19,25 @@ import (
 
 func IndexOf(targets *globals.ListString, index int) string {
 	if len(*targets) == 0 {
-        return ""
-    }
-    if index < 0 {
-        return (*targets)[0]
-    }
-    if index >= len(*targets) {
-        return (*targets)[len(*targets) - 1]
-    }
-    return (*targets)[index]
+		return ""
+	}
+	if index < 0 {
+		return (*targets)[0]
+	}
+	if index >= len(*targets) {
+		return (*targets)[len(*targets)-1]
+	}
+	return (*targets)[index]
 }
 
 func ProcessArrayTarget(context *gin.Context, target *globals.Target) any {
 	targetValue := GetArrayTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
-			if target.FinalDatatype == "array" {}
-			if target.FinalDatatype == "number" {}
+			if target.FinalDatatype == "array" {
+			}
+			if target.FinalDatatype == "number" {
+			}
 			if target.FinalDatatype == "string" {
 				if *target.Engine == "indexOf" {
 					engineConfiguration, err := strconv.Atoi(*target.EngineConfiguration)
@@ -46,9 +49,12 @@ func ProcessArrayTarget(context *gin.Context, target *globals.Target) any {
 				}
 			}
 		} else {
-			if target.FinalDatatype == "array" {}
-			if target.FinalDatatype == "number" {}
-			if target.FinalDatatype == "string" {}
+			if target.FinalDatatype == "array" {
+			}
+			if target.FinalDatatype == "number" {
+			}
+			if target.FinalDatatype == "string" {
+			}
 		}
 	}
 	return targetValue
@@ -82,9 +88,10 @@ func ProcessNumberTarget(context *gin.Context, target *globals.Target) any {
 	targetValue := GetNumberTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
-			if target.FinalDatatype == "array" {}
+			if target.FinalDatatype == "array" {
+			}
 			if target.FinalDatatype == "number" {
-				engineConfiguration, err := strconv.ParseFloat(*target.EngineConfiguration, 64)
+				engineConfiguration, err := utils.ToFloat64(*target.EngineConfiguration)
 				if err != nil {
 					context.Error(err)
 					engineConfiguration = 0
@@ -108,11 +115,15 @@ func ProcessNumberTarget(context *gin.Context, target *globals.Target) any {
 					return Remainder(targetValue, engineConfiguration)
 				}
 			}
-			if target.FinalDatatype == "string" {}
+			if target.FinalDatatype == "string" {
+			}
 		} else {
-			if target.FinalDatatype == "array" {}
-			if target.FinalDatatype == "number" {}
-			if target.FinalDatatype == "string" {}
+			if target.FinalDatatype == "array" {
+			}
+			if target.FinalDatatype == "number" {
+			}
+			if target.FinalDatatype == "string" {
+			}
 		}
 	}
 	return targetValue
@@ -128,9 +139,9 @@ func Upper(target string) string {
 
 func Capitalize(target string) string {
 	if len(target) == 0 {
-        return target
-    }
-    return strings.ToUpper(target[:1]) + target[1:]
+		return target
+	}
+	return strings.ToUpper(target[:1]) + target[1:]
 }
 
 func Trim(target string) string {
@@ -182,15 +193,18 @@ func ProcessStringTarget(context *gin.Context, target *globals.Target) any {
 	targetValue := GetStringTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
-			if target.FinalDatatype == "array" {}
-			if target.FinalDatatype == "number" {}
+			if target.FinalDatatype == "array" {
+			}
+			if target.FinalDatatype == "number" {
+			}
 			if target.FinalDatatype == "string" {
 				if *target.Engine == "hash" {
 					return Hash(targetValue, *target.EngineConfiguration)
 				}
 			}
 		} else {
-			if target.FinalDatatype == "array" {}
+			if target.FinalDatatype == "array" {
+			}
 			if target.FinalDatatype == "number" {
 				if *target.Engine == "length" {
 					return Length(targetValue)

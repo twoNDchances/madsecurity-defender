@@ -6,13 +6,14 @@ import (
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase0"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
+	"madsecurity-defender/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func ProcessImmutableTarget(context *gin.Context, target *globals.Target) any {
-	var targetGetted any 
+	var targetGetted any
 	switch target.Phase {
 	case 0:
 		if target.Alias == "full-request" {
@@ -46,11 +47,172 @@ func ProcessImmutableTarget(context *gin.Context, target *globals.Target) any {
 			targetGetted = phase1.UrlHost(context, target)
 		}
 	case 2:
+		switch target.Alias {
+		}
 	case 3:
+		switch target.Alias {
+		}
 	case 4:
+		switch target.Alias {
+		}
 	case 5:
+		if target.Alias == "full-response" {
+		}
 	}
 	return targetGetted
+}
+
+func ProcessUnimmutableTarget(context *gin.Context, target *globals.Target) any {
+	var targetProcessed any
+	switch target.Datatype {
+	case "array":
+		targetProcessed = ProcessArrayTarget(context, target)
+	case "number":
+		targetProcessed = ProcessNumberTarget(context, target)
+	case "string":
+		targetProcessed = ProcessStringTarget(context, target)
+	}
+	return targetProcessed
+}
+
+func ProcessRefererTarget(context *gin.Context, targetId uint) any {
+	targetPath := GetToRootTargets(context, targetId)
+	if len(targetPath) == 0 {
+		msg := fmt.Sprintf("Target %d: not found Target", targetId)
+		context.Error(errors.New(msg))
+		return nil
+	}
+	var targetProcessed any
+	if len(targetPath) == 0 {
+		return targetProcessed
+	}
+	root := targetPath[0]
+	if root.Immutable {
+		targetProcessed = ProcessImmutableTarget(context, &root)
+	} else {
+		targetProcessed = ProcessUnimmutableTarget(context, &root)
+	}
+	if targetProcessed == nil {
+		//
+		return nil
+	}
+	if len(targetPath[1:]) == 0 {
+		return targetProcessed
+	}
+	targetChains := targetPath[1:]
+	for _, targetChain := range targetChains {
+		if targetChain.Engine == nil {
+			continue
+		}
+		if targetChain.EngineConfiguration != nil {
+			switch t := targetProcessed.(type) {
+			case globals.ListString:
+				if targetChain.FinalDatatype == "array" {
+				}
+				if targetChain.FinalDatatype == "number" {
+				}
+				if targetChain.FinalDatatype == "string" {
+					if *targetChain.Engine == "indexOf" {
+						engineConfiguration, err := strconv.Atoi(*targetChain.EngineConfiguration)
+						if err != nil {
+							context.Error(err)
+							engineConfiguration = 0
+						}
+						targetProcessed = IndexOf(&t, engineConfiguration)
+					}
+				}
+			case float64:
+				if targetChain.FinalDatatype == "array" {
+				}
+				if targetChain.FinalDatatype == "number" {
+					engineConfiguration, err := utils.ToFloat64(*targetChain.EngineConfiguration)
+					if err != nil {
+						context.Error(err)
+						engineConfiguration = 0
+					}
+					if *targetChain.Engine == "addition" {
+						targetProcessed = Addition(t, engineConfiguration)
+					}
+					if *targetChain.Engine == "subtraction" {
+						targetProcessed = Subtraction(t, engineConfiguration)
+					}
+					if *targetChain.Engine == "multiplication" {
+						targetProcessed = Multiplication(t, engineConfiguration)
+					}
+					if *targetChain.Engine == "division" {
+						targetProcessed = Division(t, engineConfiguration)
+					}
+					if *targetChain.Engine == "powerOf" {
+						targetProcessed = PowerOf(t, engineConfiguration)
+					}
+					if *targetChain.Engine == "remainder" {
+						targetProcessed = Remainder(t, engineConfiguration)
+					}
+				}
+				if targetChain.FinalDatatype == "string" {
+				}
+			case string:
+				if targetChain.FinalDatatype == "array" {
+				}
+				if targetChain.FinalDatatype == "number" {
+				}
+				if targetChain.FinalDatatype == "string" {
+					if *targetChain.Engine == "hash" {
+						targetProcessed = Hash(t, *targetChain.EngineConfiguration)
+					}
+				}
+			}
+		} else {
+			switch t := targetProcessed.(type) {
+			case globals.ListString:
+				if targetChain.FinalDatatype == "array" {
+				}
+				if targetChain.FinalDatatype == "number" {
+				}
+				if targetChain.FinalDatatype == "string" {
+				}
+			case float64:
+				if targetChain.FinalDatatype == "array" {
+				}
+				if targetChain.FinalDatatype == "number" {
+				}
+				if targetChain.FinalDatatype == "string" {
+				}
+			case string:
+				if targetChain.FinalDatatype == "array" {
+				}
+				if targetChain.FinalDatatype == "number" {
+					if *targetChain.Engine == "length" {
+						targetProcessed = Length(t)
+					}
+				}
+				if targetChain.FinalDatatype == "string" {
+					if *targetChain.Engine == "lower" {
+						targetProcessed = Lower(t)
+					}
+					if *targetChain.Engine == "upper" {
+						targetProcessed = Upper(t)
+					}
+					if *targetChain.Engine == "capitalize" {
+						targetProcessed = Capitalize(t)
+					}
+					if *targetChain.Engine == "trim" {
+						targetProcessed = Trim(t)
+					}
+					if *targetChain.Engine == "trimLeft" {
+						targetProcessed = TrimLeft(t)
+					}
+					if *targetChain.Engine == "trimRight" {
+						targetProcessed = TrimRight(t)
+					}
+					if *targetChain.Engine == "removeWhitespace" {
+						targetProcessed = RemoveWhitespace(t)
+					}
+				}
+			}
+		}
+	}
+	return targetProcessed
 }
 
 func ProcessTarget(context *gin.Context, targetId uint) any {
@@ -66,164 +228,18 @@ func ProcessTarget(context *gin.Context, targetId uint) any {
 		case 1:
 			switch target.Type {
 			case "header", "url.args":
-				switch target.Datatype {
-				case "array":
-					targetProcessed = ProcessArrayTarget(context, &target)
-				case "number":
-					targetProcessed = ProcessNumberTarget(context, &target)
-				case "string":
-					targetProcessed = ProcessStringTarget(context, &target)
-				}
+				targetProcessed = ProcessUnimmutableTarget(context, &target)
 			case "target":
-				targetProcessed = processRefererTarget(context, targetId)
+				targetProcessed = ProcessRefererTarget(context, targetId)
 			}
 		case 2:
-		case 3:
-		case 4:
-		}
-	}
-	return targetProcessed
-}
-
-func processRefererTarget(context *gin.Context, targetId uint) any {
-	targetPath := GetToRootTargets(context, targetId)
-	if len(targetPath) == 0 {
-		msg := fmt.Sprintf("Target %d not found", targetId)
-		context.Error(errors.New(msg))
-		return nil
-	}
-	var targetProcessed any
-	if len(targetPath) > 0 {
-		root := targetPath[0]
-		if root.Immutable {
-			targetProcessed = ProcessImmutableTarget(context, &root)
-		} else {
-			switch root.Datatype {
-			case "array":
-				targetProcessed = ProcessArrayTarget(context, &root)
-			case "number":
-				targetProcessed = ProcessNumberTarget(context, &root)
-			case "string":
-				targetProcessed = ProcessStringTarget(context, &root)
+			switch target.Type {
 			}
-		}
-		if targetProcessed == nil {
-			//
-			return nil
-		}
-		if len(targetPath[1:]) == 0 {
-			return targetProcessed
-		}
-		targetChains := targetPath[1:]
-		for _, targetChain := range targetChains {
-			if targetChain.Engine != nil {
-				if targetChain.EngineConfiguration != nil {
-					switch t := targetProcessed.(type) {
-					case globals.ListString:
-						if targetChain.FinalDatatype == "array" {
-						}
-						if targetChain.FinalDatatype == "number" {
-						}
-						if targetChain.FinalDatatype == "string" {
-							if *targetChain.Engine == "indexOf" {
-								engineConfiguration, err := strconv.Atoi(*targetChain.EngineConfiguration)
-								if err != nil {
-									context.Error(err)
-									engineConfiguration = 0
-								}
-								targetProcessed = IndexOf(&t, engineConfiguration)
-							}
-						}
-					case float64:
-						if targetChain.FinalDatatype == "array" {
-						}
-						if targetChain.FinalDatatype == "number" {
-							engineConfiguration, err := strconv.ParseFloat(*targetChain.EngineConfiguration, 64)
-							if err != nil {
-								context.Error(err)
-								engineConfiguration = 0
-							}
-							if *targetChain.Engine == "addition" {
-								targetProcessed = Addition(t, engineConfiguration)
-							}
-							if *targetChain.Engine == "subtraction" {
-								targetProcessed = Subtraction(t, engineConfiguration)
-							}
-							if *targetChain.Engine == "multiplication" {
-								targetProcessed = Multiplication(t, engineConfiguration)
-							}
-							if *targetChain.Engine == "division" {
-								targetProcessed = Division(t, engineConfiguration)
-							}
-							if *targetChain.Engine == "powerOf" {
-								targetProcessed = PowerOf(t, engineConfiguration)
-							}
-							if *targetChain.Engine == "remainder" {
-								targetProcessed = Remainder(t, engineConfiguration)
-							}
-						}
-						if targetChain.FinalDatatype == "string" {
-						}
-					case string:
-						if targetChain.FinalDatatype == "array" {
-						}
-						if targetChain.FinalDatatype == "number" {
-						}
-						if targetChain.FinalDatatype == "string" {
-							if *targetChain.Engine == "hash" {
-								targetProcessed = Hash(t, *targetChain.EngineConfiguration)
-							}
-						}
-					}
-				} else {
-					switch t := targetProcessed.(type) {
-					case globals.ListString:
-						if targetChain.FinalDatatype == "array" {
-						}
-						if targetChain.FinalDatatype == "number" {
-						}
-						if targetChain.FinalDatatype == "string" {
-						}
-					case float64:
-						if targetChain.FinalDatatype == "array" {
-						}
-						if targetChain.FinalDatatype == "number" {
-						}
-						if targetChain.FinalDatatype == "string" {
-						}
-					case string:
-						if targetChain.FinalDatatype == "array" {
-						}
-						if targetChain.FinalDatatype == "number" {
-							if *targetChain.Engine == "length" {
-								targetProcessed = Length(t)
-							}
-						}
-						if targetChain.FinalDatatype == "string" {
-							if *targetChain.Engine == "lower" {
-								targetProcessed = Lower(t)
-							}
-							if *targetChain.Engine == "upper" {
-								targetProcessed = Upper(t)
-							}
-							if *targetChain.Engine == "capitalize" {
-								targetProcessed = Capitalize(t)
-							}
-							if *targetChain.Engine == "trim" {
-								targetProcessed = Trim(t)
-							}
-							if *targetChain.Engine == "trimLeft" {
-								targetProcessed = TrimLeft(t)
-							}
-							if *targetChain.Engine == "trimRight" {
-								targetProcessed = TrimRight(t)
-							}
-							if *targetChain.Engine == "removeWhitespace" {
-								targetProcessed = RemoveWhitespace(t)
-							}
-						}
-					}
-				}
+		case 3:
+			switch target.Type {
+			}
+		case 4:
+			switch target.Type {
 			}
 		}
 	}

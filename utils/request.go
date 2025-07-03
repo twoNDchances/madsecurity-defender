@@ -19,7 +19,7 @@ var supportedMethods = []string{
 type httpRequest struct {
 	method string
 	url    string
-	body   map[string]interface{}
+	body   map[string]any
 }
 
 func (h *httpRequest) validate() error {
@@ -51,7 +51,7 @@ func (h *httpRequest) validateUrl() error {
 	return nil
 }
 
-func NewHttp(method, url string, body map[string]interface{}) (*httpRequest, error) {
+func NewHttp(method, url string, body map[string]any) (*httpRequest, error) {
 	http := httpRequest{
 		method: method,
 		url:    url,

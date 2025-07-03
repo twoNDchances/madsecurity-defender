@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"log"
 	"madsecurity-defender/globals"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,7 @@ func CheckRule(context *gin.Context, target any, rule *globals.Rule) bool {
 		switch rule.Comparator {
 		case "@similar":
 			result = Similar(context, t, rule)
+			log.Println(result)
 		case "@contains":
 			result = Contains(context, t, rule)
 		}

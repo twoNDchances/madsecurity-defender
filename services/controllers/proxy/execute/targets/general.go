@@ -2,8 +2,8 @@ package targets
 
 import (
 	"madsecurity-defender/globals"
+	"madsecurity-defender/utils"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -48,7 +48,7 @@ func GetNumberTarget(context *gin.Context, target *globals.Target) float64 {
 	if target.Phase == 1 && target.Datatype == "number" {
 		values := getValueFromPhase1Type(context, target)
 		if value, ok := values[target.Name]; ok {
-			number, err := strconv.ParseFloat(value, 64)
+			number, err := utils.ToFloat64(value)
 			if err != nil {
 				context.Error(err)
 			} else {
@@ -64,7 +64,7 @@ func GetStringTarget(context *gin.Context, target *globals.Target) string {
 	if target.Phase == 1 && target.Datatype == "string" {
 		values := getValueFromPhase1Type(context, target)
 		if value, ok := values[target.Name]; ok {
-			needed = value 
+			needed = value
 		}
 	}
 	return needed
