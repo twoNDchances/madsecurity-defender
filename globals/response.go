@@ -49,7 +49,7 @@ type Rule struct {
 	TargetID            uint    `json:"target_id"`
 	Comparator          string  `json:"comparator"`
 	Inverse             bool    `json:"inverse"`
-	Value               *string  `json:"value"`
+	Value               *string `json:"value"`
 	Action              *string `json:"action"`
 	ActionConfiguration *string `json:"action_configuration"`
 	Severity            *string `json:"severity"`
@@ -95,9 +95,9 @@ func (t Target) GetID() uint {
 // ##############################################
 
 type Wordlist struct {
-	ID    uint
-	Name  string
-	Alias string
+	ID    uint   `json:"id"`
+	Name  string `json:"name"`
+	Alias string `json:"alias"`
 }
 
 func (w Wordlist) GetID() uint {
@@ -109,9 +109,9 @@ func (w Wordlist) GetID() uint {
 // ##############################################
 
 type Word struct {
-	ID         uint
-	Content    string
-	WordlistID uint
+	ID         uint   `json:"id"`
+	Content    string `json:"content"`
+	WordlistID uint   `json:"wordlist_id"`
 }
 
 func (w Word) GetID() uint {

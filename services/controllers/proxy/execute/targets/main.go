@@ -2,6 +2,7 @@ package targets
 
 import (
 	"madsecurity-defender/globals"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -67,4 +68,37 @@ func GetStringTarget(context *gin.Context, target *globals.Target) string {
 		}
 	}
 	return needed
+}
+
+func GetToRootTargets(context *gin.Context, targetId uint) []globals.Target {
+	visited := make(map[uint]bool)
+	path := make([]globals.Target, 0)
+	currentId := targetId
+	for {
+		node, exists := globals.Targets[currentId]
+		if !exists {
+			break
+		}
+		path = append(path, node)
+		if visited[currentId] {
+			break
+		}
+		visited[currentId] = true
+		if node.TargetID == nil {
+			break
+		}
+		nextId := *node.TargetID
+		if nextId == currentId {
+			break
+		}
+		if visited[nextId] {
+			break
+		}
+		if _, ok := globals.Targets[nextId]; !ok {
+			break
+		}
+		currentId = nextId
+	}
+	slices.Reverse(path)
+	return path
 }

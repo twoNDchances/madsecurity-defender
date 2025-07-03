@@ -44,11 +44,13 @@ func Revoke(context *gin.Context, security *globals.Security, storage *globals.S
 		go inredis.Remove(&wg, &responseApiForm.Words, "words", &words, &errs)
 	}
 	wg.Wait()
-	for i, group := range globals.ListGroups {
-		if slices.Contains(responseApiForm.Groups, group.ID) {
-			globals.ListGroups = append(globals.ListGroups[:i], globals.ListGroups[i+1:]...)
+	tmpListGroups := make([]globals.Group, 0)
+	for _, group := range globals.ListGroups {
+		if !slices.Contains(responseApiForm.Groups, group.ID) {
+			tmpListGroups = append(tmpListGroups, group)
 		}
 	}
+	globals.ListGroups = tmpListGroups
 	responseApiForm = globals.Revocation{}
 	switch storage.Type {
 	case "memory":

@@ -67,10 +67,8 @@ func Apply(context *gin.Context, security *globals.Security, storage *globals.St
 		}
 	}
 	tmpGroups := make([]globals.Group, 0)
-	for _, group := range globals.ListGroups {
-		if exists, ok := globals.Groups[group.ID]; ok {
-			tmpGroups = append(tmpGroups, exists)
-		}
+	for _, group := range globals.Groups {
+		tmpGroups = append(tmpGroups, group)
 	}
 	globals.ListGroups = append(globals.ListGroups, tmpGroups...)
 	globals.SortGroup(globals.ListGroups)
