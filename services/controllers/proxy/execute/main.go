@@ -3,7 +3,6 @@ package execute
 import (
 	"errors"
 	"fmt"
-	"log"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/actions"
 	perform "madsecurity-defender/services/controllers/proxy/execute/rules"
@@ -20,15 +19,11 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 	level := globals.ViolationLevel
 	score := globals.ViolationScore
 	var scoreDefault int
-	var breakSign bool
 	for _, group := range globals.ListGroups {
-		if breakSign {
-			break
-		}
 		if group.Level != uint(level) {
 			continue
 		}
-		getRules := func() []globals.Rule {
+		ruleGetted := func() []globals.Rule {
 			rules := make([]globals.Rule, 0)
 			for _, ruleId := range group.Rules {
 				if rule, ok := globals.Rules[ruleId]; ok {
@@ -37,12 +32,13 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 			}
 			return rules
 		}
-		rules := getRules()
+		rules := ruleGetted()
 		for _, rule := range rules {
-			getTarget := func() any {
+			targetGetted := func() any {
+				var targetProcessed any
 				target, ok := globals.Targets[rule.TargetID]
 				if !ok {
-					return nil
+					return targetProcessed
 				}
 				if target.Immutable {
 					switch target.Phase {
@@ -104,225 +100,157 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 								context.Error(errors.New(msg))
 								return nil
 							}
-							var targetProcessed any
-							log.Println(targetPath)
-							for _, targetFromRoot := range targetPath {
-								eachTarget := func() any {
-									if targetFromRoot.Immutable {
-										switch targetFromRoot.Phase {
-										case 0:
-											if targetFromRoot.Alias == "full-request" {
-												return phase0.FullRequest(context, &targetFromRoot)
-											}
-										case 1:
-											switch targetFromRoot.Alias {
-											case "header-keys":
-												return phase1.HeaderKeys(context, &targetFromRoot)
-											case "header-values":
-												return phase1.HeaderValues(context, &targetFromRoot)
-											case "url-args-keys":
-												return phase1.UrlArgsKeys(context, &targetFromRoot)
-											case "url-args-values":
-												return phase1.UrlArgsValues(context, &targetFromRoot)
-											case "header-size":
-												return phase1.HeaderSize(context, &targetFromRoot)
-											case "url-port":
-												return phase1.UrlPort(context, &targetFromRoot)
-											case "url-args-size":
-												return phase1.UrlArgsSize(context, &targetFromRoot)
-											case "client-ip":
-												return phase1.ClientIp(context, &targetFromRoot)
-											case "client-method":
-												return phase1.ClientMethod(context, &targetFromRoot)
-											case "url-path":
-												return phase1.UrlPath(context, &targetFromRoot)
-											case "url-scheme":
-												return phase1.UrlScheme(context, &targetFromRoot)
-											case "url-host":
-												return phase1.UrlHost(context, &targetFromRoot)
-											default:
-												return nil
-											}
-										case 2:
-										case 3:
-										case 4:
-										case 5:
+							var targetGetted any
+							if len(targetPath) > 0 {
+								root := targetPath[0]
+								if root.Immutable {
+									switch root.Phase {
+									case 0:
+										if root.Alias == "full-request" {
+											targetGetted = phase0.FullRequest(context, &root)
 										}
-									} else {
-										if slices.Contains(globals.ListString{
-											"header",
-											"url.args",
-										}, targetFromRoot.Datatype) {
-											switch targetFromRoot.Datatype {
-											case "array":
-												return targets.GetArrayTarget(context, &targetFromRoot)
-											case "number":
-												return targets.GetNumberTarget(context, &targetFromRoot)
-											case "string":
-												return targets.GetStringTarget(context, &targetFromRoot)
-											}
-										} else {
-											//
+									case 1:
+										switch root.Alias {
+										case "header-keys":
+											targetGetted = phase1.HeaderKeys(context, &root)
+										case "header-values":
+											targetGetted = phase1.HeaderValues(context, &root)
+										case "url-args-keys":
+											targetGetted = phase1.UrlArgsKeys(context, &root)
+										case "url-args-values":
+											targetGetted = phase1.UrlArgsValues(context, &root)
+										case "header-size":
+											targetGetted = phase1.HeaderSize(context, &root)
+										case "url-port":
+											targetGetted = phase1.UrlPort(context, &root)
+										case "url-args-size":
+											targetGetted = phase1.UrlArgsSize(context, &root)
+										case "client-ip":
+											targetGetted = phase1.ClientIp(context, &root)
+										case "client-method":
+											targetGetted = phase1.ClientMethod(context, &root)
+										case "url-path":
+											targetGetted = phase1.UrlPath(context, &root)
+										case "url-scheme":
+											targetGetted = phase1.UrlScheme(context, &root)
+										case "url-host":
+											targetGetted = phase1.UrlHost(context, &root)
 										}
+									case 2:
+									case 3:
+									case 4:
+									case 5:
 									}
+								} else {
+									switch root.Datatype {
+									case "array":
+										targetGetted = targets.ProcessArrayTarget(context, &root)
+									case "number":
+										targetGetted = targets.ProcessNumberTarget(context, &root)
+									case "string":
+										targetGetted = targets.ProcessStringTarget(context, &root)
+									}
+								}
+								if targetGetted == nil {
+									//
 									return nil
 								}
-								targetGetted := eachTarget()
-								log.Println(targetGetted)
-								if targetFromRoot.Engine != nil {
-									if targetFromRoot.EngineConfiguration != nil {
-										switch t := targetGetted.(type) {
-										case globals.ListString:
-											if targetFromRoot.FinalDatatype == "array" {}
-											if targetFromRoot.FinalDatatype == "number" {}
-											if targetFromRoot.FinalDatatype == "string" {
-												if *targetFromRoot.Engine == "indexOf" {
-													engineConfiguration, err := strconv.Atoi(*targetFromRoot.EngineConfiguration)
+								if len(targetPath[1:]) == 0 {
+									return targetGetted
+								}
+								targetChains := targetPath[1:]
+								for _, targetChain := range targetChains {
+									if targetChain.Engine != nil {
+										if targetChain.EngineConfiguration != nil {
+											switch t := targetGetted.(type) {
+											case globals.ListString:
+												if targetChain.FinalDatatype == "array" {}
+												if targetChain.FinalDatatype == "number" {}
+												if targetChain.FinalDatatype == "string" {
+													if *targetChain.Engine == "indexOf" {
+														engineConfiguration, err := strconv.Atoi(*targetChain.EngineConfiguration)
+														if err != nil {
+															context.Error(err)
+															engineConfiguration = 0
+														}
+														targetGetted = targets.IndexOf(&t, engineConfiguration)
+													}
+												}
+											case float64:
+												if targetChain.FinalDatatype == "array" {}
+												if targetChain.FinalDatatype == "number" {
+													engineConfiguration, err := strconv.ParseFloat(*targetChain.EngineConfiguration, 64)
 													if err != nil {
 														context.Error(err)
 														engineConfiguration = 0
 													}
-													if targetProcessed == nil {
-														targetProcessed = targets.IndexOf(&t, engineConfiguration)
-													} else {
-														targetProcessed = targets.IndexOf(targetProcessed.(*globals.ListString), engineConfiguration)
+													if *targetChain.Engine == "addition" {
+														targetGetted = targets.Addition(t, engineConfiguration)
+													}
+													if *targetChain.Engine == "subtraction" {
+														targetGetted = targets.Subtraction(t, engineConfiguration)
+													}
+													if *targetChain.Engine == "multiplication" {
+														targetGetted = targets.Multiplication(t, engineConfiguration)
+													}
+													if *targetChain.Engine == "division" {
+														targetGetted = targets.Division(t, engineConfiguration)
+													}
+													if *targetChain.Engine == "powerOf" {
+														targetGetted = targets.PowerOf(t, engineConfiguration)
+													}
+													if *targetChain.Engine == "remainder" {
+														targetGetted = targets.Remainder(t, engineConfiguration)
+													}
+												}
+												if targetChain.FinalDatatype == "string" {}
+											case string:
+												if targetChain.FinalDatatype == "array" {}
+												if targetChain.FinalDatatype == "number" {}
+												if targetChain.FinalDatatype == "string" {
+													if *targetChain.Engine == "hash" {
+														targetGetted = targets.Hash(t, *targetChain.EngineConfiguration)
 													}
 												}
 											}
-										case float64:
-											if targetFromRoot.FinalDatatype == "array" {}
-											if targetFromRoot.FinalDatatype == "number" {
-												engineConfiguration, err := strconv.ParseFloat(*targetFromRoot.EngineConfiguration, 64)
-												if err != nil {
-													context.Error(err)
-													engineConfiguration = 0
-												}
-												if *targetFromRoot.Engine == "addition" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Addition(t, engineConfiguration)
-													} else {
-														targetProcessed = targets.Addition(targetProcessed.(float64), engineConfiguration)
+										} else {
+											switch t := targetGetted.(type) {
+											case globals.ListString:
+												if targetChain.FinalDatatype == "array" {}
+												if targetChain.FinalDatatype == "number" {}
+												if targetChain.FinalDatatype == "string" {}
+											case float64:
+												if targetChain.FinalDatatype == "array" {}
+												if targetChain.FinalDatatype == "number" {}
+												if targetChain.FinalDatatype == "string" {}
+											case string:
+												if targetChain.FinalDatatype == "array" {}
+												if targetChain.FinalDatatype == "number" {
+													if *targetChain.Engine == "length" {
+														targetGetted = targets.Length(t)
 													}
 												}
-												if *targetFromRoot.Engine == "subtraction" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Subtraction(t, engineConfiguration)
-													} else {
-														targetProcessed = targets.Subtraction(targetProcessed.(float64), engineConfiguration)
+												if targetChain.FinalDatatype == "string" {
+													if *targetChain.Engine == "lower" {
+														targetGetted = targets.Lower(t)
 													}
-												}
-												if *targetFromRoot.Engine == "multiplication" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Multiplication(t, engineConfiguration)
-													} else {
-														targetProcessed = targets.Multiplication(targetProcessed.(float64), engineConfiguration)
+													if *targetChain.Engine == "upper" {
+														targetGetted = targets.Upper(t)
 													}
-												}
-												if *targetFromRoot.Engine == "division" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Division(t, engineConfiguration)
-													} else {
-														targetProcessed = targets.Division(targetProcessed.(float64), engineConfiguration)
+													if *targetChain.Engine == "capitalize" {
+														targetGetted = targets.Capitalize(t)
 													}
-												}
-												if *targetFromRoot.Engine == "powerOf" {
-													if targetProcessed == nil {
-														targetProcessed = targets.PowerOf(t, engineConfiguration)
-													} else {
-														targetProcessed = targets.PowerOf(targetProcessed.(float64), engineConfiguration)
+													if *targetChain.Engine == "trim" {
+														targetGetted = targets.Trim(t)
 													}
-												}
-												if *targetFromRoot.Engine == "remainder" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Remainder(t, engineConfiguration)
-													} else {
-														targetProcessed = targets.PowerOf(targetProcessed.(float64), engineConfiguration)
+													if *targetChain.Engine == "trimLeft" {
+														targetGetted = targets.TrimLeft(t)
 													}
-												}
-											}
-											if targetFromRoot.FinalDatatype == "string" {}
-										case string:
-											if targetFromRoot.FinalDatatype == "array" {}
-											if targetFromRoot.FinalDatatype == "number" {}
-											if targetFromRoot.FinalDatatype == "string" {
-												if *targetFromRoot.Engine == "hash" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Hash(t, *targetFromRoot.EngineConfiguration)
-													} else {
-														targetProcessed = targets.Hash(targetProcessed.(string), *targetFromRoot.EngineConfiguration)
+													if *targetChain.Engine == "trimRight" {
+														targetGetted = targets.TrimRight(t)
 													}
-												}
-											}
-										}
-									} else {
-										switch t := targetGetted.(type) {
-										case globals.ListString:
-											if targetFromRoot.FinalDatatype == "array" {}
-											if targetFromRoot.FinalDatatype == "number" {}
-											if targetFromRoot.FinalDatatype == "string" {}
-										case float64:
-											if targetFromRoot.FinalDatatype == "array" {}
-											if targetFromRoot.FinalDatatype == "number" {}
-											if targetFromRoot.FinalDatatype == "string" {}
-										case string:
-											if targetFromRoot.FinalDatatype == "array" {}
-											if targetFromRoot.FinalDatatype == "number" {
-												if *targetFromRoot.Engine == "length" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Length(t)
-													} else {
-														targetProcessed = targets.Length(targetProcessed.(string))
-													}
-												}
-											}
-											if targetFromRoot.FinalDatatype == "string" {
-												if *targetFromRoot.Engine == "lower" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Lower(t)
-													} else {
-														targetProcessed = targets.Lower(targetProcessed.(string))
-													}
-												}
-												if *targetFromRoot.Engine == "upper" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Upper(t)
-													} else {
-														targetProcessed = targets.Upper(targetProcessed.(string))
-													}
-												}
-												if *targetFromRoot.Engine == "capitalize" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Capitalize(t)
-													} else {
-														targetProcessed = targets.Capitalize(targetProcessed.(string))
-													}
-												}
-												if *targetFromRoot.Engine == "trim" {
-													if targetProcessed == nil {
-														targetProcessed = targets.Trim(t)
-													} else {
-														targetProcessed = targets.Trim(targetProcessed.(string))
-													}
-												}
-												if *targetFromRoot.Engine == "trimLeft" {
-													if targetProcessed == nil {
-														targetProcessed = targets.TrimLeft(t)
-													} else {
-														targetProcessed = targets.TrimLeft(targetProcessed.(string))
-													}
-												}
-												if *targetFromRoot.Engine == "trimRight" {
-													if targetProcessed == nil {
-														targetProcessed = targets.TrimRight(t)
-													} else {
-														targetProcessed = targets.TrimRight(targetProcessed.(string))
-													}
-												}
-												if *targetFromRoot.Engine == "removeWhitespace" {
-													if targetProcessed == nil {
-														targetProcessed = targets.RemoveWhitespace(t)
-													} else {
-														targetProcessed = targets.RemoveWhitespace(targetProcessed.(string))
+													if *targetChain.Engine == "removeWhitespace" {
+														targetGetted = targets.RemoveWhitespace(t)
 													}
 												}
 											}
@@ -330,7 +258,7 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 									}
 								}
 							}
-							return targetProcessed
+							return targetGetted
 						}
 					case 2:
 					case 3:
@@ -339,7 +267,7 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 				}
 				return nil
 			}
-			target := getTarget()
+			target := targetGetted()
 			if target == nil {
 				context.Error(fmt.Errorf("target %d: unobtainable Target", rule.TargetID))
 				continue
