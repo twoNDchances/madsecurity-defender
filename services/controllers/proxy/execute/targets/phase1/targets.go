@@ -1,7 +1,9 @@
 package phase1
 
 import (
+	"fmt"
 	"madsecurity-defender/globals"
+	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/utils"
 	"net"
 	"strings"
@@ -61,17 +63,19 @@ func HeaderSize(context *gin.Context, target *globals.Target) float64 {
 	return size
 }
 
-func UrlPort(context *gin.Context, target *globals.Target) float64 {
+func UrlPort(context *gin.Context, proxy *globals.Proxy, target *globals.Target) float64 {
 	port := 0.0
 	if target.Phase == 1 && target.Alias == "url-port" && target.Name == "port" && target.Immutable && target.TargetID == nil {
 		host := context.Request.Host
 		_, portString, err := net.SplitHostPort(host)
 		if err != nil {
-			context.Error(err)
+			msg := fmt.Sprintf("Target %d: %v", target.ID, err)
+			errors.WriteErrorTargetLog(proxy, msg)
 		} else {
 			port, err = utils.ToFloat64(portString)
 			if err != nil {
-				context.Error(err)
+				msg := fmt.Sprintf("Target %d: %v", target.ID, err)
+				errors.WriteErrorTargetLog(proxy, msg)
 			}
 		}
 	}

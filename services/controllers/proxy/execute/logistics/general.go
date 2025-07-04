@@ -3,11 +3,9 @@ package logistics
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"madsecurity-defender/globals"
+	"madsecurity-defender/utils"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,136 +23,115 @@ type Logistic struct {
 	Rule      bool
 }
 
-func (l *Logistic) build() string {
+func (l *Logistic) build() globals.DictAny {
 	data := make(globals.DictAny, 0)
 	if l.Time {
-		data["time"] = `"timeValue"`
+		data["time"] = nil
 	}
 	if l.UserAgent {
-		data["user_agent"] = `"userAgentValue"`
+		data["user_agent"] = nil
 	}
 	if l.ClientIP {
-		data["client_ip"] = `"clientIPValue"`
+		data["client_ip"] = nil
 	}
 	if l.Method {
-		data["method"] = `"methodValue"`
+		data["method"] = nil
 	}
 	if l.Path {
-		data["path"] = `"pathValue"`
+		data["path"] = nil
 	}
 	if l.Output {
-		data["output"] = `"outputValue"`
+		data["output"] = nil
 	}
 	if l.Target {
-		data["target"] = `"targetValue"`
+		data["target"] = nil
 	}
 	if l.Rule {
-		data["rule"] = `"ruleValue"`
+		data["rule"] = nil
 	}
-	bytes, err := json.Marshal(data)
-	if err != nil {
-		return "{}"
-	}
-	return string(bytes)
+	return data
 }
 
-func (l *Logistic) generate(context any, output any, targets *[]globals.Target, rule *globals.Rule) string {
+func (l *Logistic) generate(context any, output any, targets *[]globals.Target, rule *globals.Rule) globals.DictAny {
 	content := l.build()
 	if l.Time {
-		content = strings.ReplaceAll(content, "timeValue", time.Now().String())
+		content["time"] = time.Now().String()
 	}
 	switch ctx := context.(type) {
 	case *gin.Context:
 		if l.UserAgent {
-			content = strings.ReplaceAll(content, "userAgentValue", ctx.Request.UserAgent())
+			content["user_agent"] = ctx.Request.UserAgent()
 		}
 		if l.ClientIP {
-			content = strings.ReplaceAll(content, "clientIPValue", ctx.RemoteIP())
+			content["client_ip"] = ctx.RemoteIP()
 		}
 		if l.Method {
-			content = strings.ReplaceAll(content, "methodValue", ctx.Request.Method)
+			content["method"] = ctx.Request.Method
 		}
 		if l.Path {
-			content = strings.ReplaceAll(content, "pathValue", ctx.Request.URL.Path)
+			content["path"] = ctx.Request.URL.Path
 		}
 	case *http.Response:
 		if l.UserAgent {
-			content = strings.ReplaceAll(content, "userAgentValue", ctx.Request.UserAgent())
+			content["user_agent"] = ctx.Request.UserAgent()
 		}
 		if l.ClientIP {
-			content = strings.ReplaceAll(content, "clientIPValue", ctx.Request.RemoteAddr)
+			content["client_ip"] = ctx.Request.RemoteAddr
 		}
 		if l.Method {
-			content = strings.ReplaceAll(content, "methodValue", ctx.Request.Method)
+			content["method"] = ctx.Request.Method
 		}
 		if l.Path {
-			content = strings.ReplaceAll(content, "pathValue", ctx.Request.URL.Path)
+			content["path"] = ctx.Request.URL.Path
 		}
 	}
 	if l.Output {
-		content = strings.ReplaceAll(content, "outputValue", fmt.Sprint(output))
+		content["output"] = output
 	}
 	if l.Target {
-		var targetValue globals.ListString
+		var targetValues []globals.DictAny
 		for _, target := range *targets {
-			var (
-				engine = "null"
-				engineConfiguration = "null"
-			)
-			if target.Engine != nil {
-				engine = fmt.Sprintf(`"%s"`, *target.Engine)
-			}
-			if target.EngineConfiguration != nil {
-				engineConfiguration = fmt.Sprintf(`"%s"`, *target.EngineConfiguration)
-			}
-			data := fmt.Sprintf(
-				`{"name":"%s","alias":"%s","type":"%s","engine":%s,"engineConfiguration":%s}`,
-				target.Name, target.Alias, target.Type, engine, engineConfiguration,
-			)
-			targetValue = append(targetValue, data)
+			targetValues = append(targetValues, globals.DictAny{
+				"name": target.Name,
+				"alias": target.Alias,
+				"type": target.Type,
+				"datatype": target.Datatype,
+				"engine": target.Engine,
+				"engine_configuration": target.EngineConfiguration,
+				"final_datatype": target.FinalDatatype,
+				"wordlist_id": target.WordlistID,
+			})
 		}
-		content = strings.ReplaceAll(content, `"targetValue"`, fmt.Sprintf("[%s]", strings.Join(targetValue, ",")))
+		content["target"] = targetValues
 	}
 	if l.Rule {
-		var (
-			value = "null"
-			wordlistId any = "null"
-			action = "null"
-			severity = "null"
-		)
-		if rule.Value != nil {
-			value = fmt.Sprintf(`"%s"`, *rule.Value)
+		content["rule"] = globals.DictAny{
+			"name": rule.Name,
+			"alias": rule.Alias,
+			"comparator": rule.Comparator,
+			"inverse": rule.Inverse,
+			"value": rule.Value,
+			"wordlist_id": rule.WordlistID,
+			"action": rule.Action,
+			"action_configuration": rule.ActionConfiguration,
+			"severity": rule.Severity,
 		}
-		if rule.WordlistID != nil {
-			wordlistId = *rule.WordlistID
-		}
-		if rule.Action != nil {
-			action = fmt.Sprintf(`"%s"`, *rule.Action)
-		}
-		if rule.Severity != nil {
-			severity = fmt.Sprintf(`"%s"`, *rule.Severity)
-		}
-		ruleValue := fmt.Sprintf(
-			`{"name":"%s","alias":"%s","comparator":"%s","inverse":%v,"value":%s,"wordlistId":%v,"action":%s,"severity":%s}`,
-			rule.Name, rule.Alias, rule.Comparator, rule.Inverse, value, wordlistId, action, severity,
-		)
-		content = strings.ReplaceAll(content, `"ruleValue"`, ruleValue)
 	}
 	return content
 }
 
-func (l *Logistic) Write(context any, path string, output any, targets *[]globals.Target, rule *globals.Rule) bool {
-	if !l.Enable {
-		return true
+func (l *Logistic) Write(context any, proxy *globals.Proxy, output any, targets *[]globals.Target, rule *globals.Rule) error {
+	if l.Enable {
+		content := l.generate(context, output, targets, rule)
+		data, err := json.Marshal(content)
+		if err != nil {
+			return err
+		}
+		auditPath := fmt.Sprintf("%s.json", proxy.HistoryAuditPath)
+		errorPath := fmt.Sprintf("%s.log", proxy.HistoryErrorPath)
+		utils.WriteAudit(auditPath, errorPath, data)
 	}
-	content := l.generate(context, output, targets, rule)
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-		// msg := fmt.Sprintf("Rule")
-		// context.Error()
-		log.Println(err)
-		return false
-	}
-	return true
+	return nil
 }
 
 func NewLogistic(enable, time, userAgent, clientIp, method, path, output, target, rule bool) *Logistic {

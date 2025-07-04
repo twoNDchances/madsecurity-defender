@@ -60,17 +60,20 @@ var (
 	}
 
 	ProxyVars = DictString{
-		"tls.enable":        os.Getenv("DEFENDER_PROXY_TLS_ENABLE"),
-		"tls.key":           os.Getenv("DEFENDER_PROXY_TLS_KEY"),
-		"tls.crt":           os.Getenv("DEFENDER_PROXY_TLS_CRT"),
-		"host":              os.Getenv("DEFENDER_PROXY_HOST"),
-		"port":              os.Getenv("DEFENDER_PROXY_PORT"),
-		"violation.score":   os.Getenv("DEFENDER_PROXY_VIOLATION_SCORE"),
-		"violation.level":   os.Getenv("DEFENDER_PROXY_VIOLATION_LEVEL"),
-		"severity.notice":   os.Getenv("DEFENDER_PROXY_SEVERITY_NOTICE"),
-		"severity.warning":  os.Getenv("DEFENDER_PROXY_SEVERITY_WARNING"),
-		"severity.error":    os.Getenv("DEFENDER_PROXY_SEVERITY_ERROR"),
-		"severity.critical": os.Getenv("DEFENDER_PROXY_SEVERITY_CRITICAL"),
+		"tls.enable":           os.Getenv("DEFENDER_PROXY_TLS_ENABLE"),
+		"tls.key":              os.Getenv("DEFENDER_PROXY_TLS_KEY"),
+		"tls.crt":              os.Getenv("DEFENDER_PROXY_TLS_CRT"),
+		"host":                 os.Getenv("DEFENDER_PROXY_HOST"),
+		"port":                 os.Getenv("DEFENDER_PROXY_PORT"),
+		"violation.score":      os.Getenv("DEFENDER_PROXY_VIOLATION_SCORE"),
+		"violation.level":      os.Getenv("DEFENDER_PROXY_VIOLATION_LEVEL"),
+		"severity.notice":      os.Getenv("DEFENDER_PROXY_SEVERITY_NOTICE"),
+		"severity.warning":     os.Getenv("DEFENDER_PROXY_SEVERITY_WARNING"),
+		"severity.error":       os.Getenv("DEFENDER_PROXY_SEVERITY_ERROR"),
+		"severity.critical":    os.Getenv("DEFENDER_PROXY_SEVERITY_CRITICAL"),
+		"history.audit.path":   os.Getenv("DEFENDER_PROXY_HISTORY_AUDIT_PATH"),
+		"history.error.enable": os.Getenv("DEFENDER_PROXY_HISTORY_ERROR_ENABLE"),
+		"history.error.path":   os.Getenv("DEFENDER_PROXY_HISTORY_ERROR_PATH"),
 	}
 
 	BackendVars = DictString{
@@ -103,6 +106,7 @@ var (
 		"proxy.tls.key",
 		"proxy.tls.crt",
 		"proxy.host",
+		"proxy.history.error.path",
 
 		"backend.path",
 	}

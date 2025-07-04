@@ -7,10 +7,13 @@ import (
 )
 
 type Proxy struct {
-	Entry          Entry
-	ViolationScore int
-	ViolationLevel int
-	Severity       Severity
+	Entry              Entry
+	ViolationScore     int
+	ViolationLevel     int
+	Severity           Severity
+	HistoryAuditPath   string
+	HistoryErrorEnable bool
+	HistoryErrorPath   string
 }
 
 func (p *Proxy) Validate() ListError {
@@ -20,6 +23,8 @@ func (p *Proxy) Validate() ListError {
 		p.validatePort(),
 		p.validateViolationScore(),
 		p.validateViolationLevel(),
+		p.validateAuditPath(),
+		p.validateErrorPath(),
 	); len(errors) > 0 {
 		return errors
 	}
@@ -107,6 +112,17 @@ func (p *Proxy) validateViolationLevel() error {
 	}
 	ViolationLevel = p.ViolationLevel
 	return nil
+}
+
+func (p *Proxy) validateAuditPath() error {
+	return utils.CheckAndCreateDefaultFile(fmt.Sprintf("%s.json", p.HistoryAuditPath), "History.Audit.Path")
+}
+
+func (p *Proxy) validateErrorPath() error {
+	if !p.HistoryErrorEnable {
+		return nil
+	}
+	return utils.CheckAndCreateDefaultFile(fmt.Sprintf("%s.log", p.HistoryErrorPath), "History.Error.Path")
 }
 
 type Severity struct {

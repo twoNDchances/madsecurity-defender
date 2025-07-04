@@ -10,14 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const timeStampLayout = "15:04:05 - 02/01/2006"
-
 func Log(logging *globals.Log) gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(parameters gin.LogFormatterParams) string {
 		logDefaultFormat := func(separator string) string {
 			return fmt.Sprintf(
 				"%s %s %d %s %s %s %s %s %s %s %s %s %d %s %d %s %s\n",
-				parameters.TimeStamp.Format(timeStampLayout),
+				parameters.TimeStamp.Format(utils.TimeStampLayout),
 				separator,
 				parameters.StatusCode,
 				separator,
@@ -40,7 +38,7 @@ func Log(logging *globals.Log) gin.HandlerFunc {
 			return fmt.Sprintf(
 				`{%s"time": "%s",%s"status": %d,%s"client_ip": "%s",%s"user_agent": "%s",%s"method": "%s",%s"path": "%s",%s"request_length": %d,%s"response_length": %d,%s"error": "%s"%s}`,
 				eachField,
-				parameters.TimeStamp.Format(timeStampLayout),
+				parameters.TimeStamp.Format(utils.TimeStampLayout),
 				eachField,
 				parameters.StatusCode,
 				eachField,

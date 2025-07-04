@@ -1,13 +1,8 @@
 package actions
 
-import (
-	"madsecurity-defender/globals"
-
-	"github.com/gin-gonic/gin"
-)
+import "madsecurity-defender/globals"
 
 func Perform(
-	context *gin.Context,
 	proxy *globals.Proxy,
 	target *globals.Target,
 	targetValue any,
@@ -23,15 +18,15 @@ func Perform(
 	case "deny":
 		forceReturn, result = Deny()
 	case "inspect":
-		forceReturn, result = Inspect(context, proxy, rule, defaultScore)
+		forceReturn, result = Inspect(proxy, rule, defaultScore)
 	case "request":
-		forceReturn, result = Request(context, targetValue, rule)
+		forceReturn, result = Request(proxy, targetValue, rule)
 	case "setScore":
-		forceReturn, result = SetScore(context, rule, score)
+		forceReturn, result = SetScore(proxy, rule, score)
 	case "setLevel":
-		forceReturn, result = SetLevel(context, rule, level)
+		forceReturn, result = SetLevel(proxy, rule, level)
 	case "report":
-		forceReturn, result = Report(context, proxy, targetValue, rule)
+		forceReturn, result = Report(proxy, targetValue, rule)
 	}
 	return forceReturn, result
 }

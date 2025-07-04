@@ -2,16 +2,16 @@ package phase0
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"madsecurity-defender/globals"
+	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func FullRequest(context *gin.Context, target *globals.Target) string {
+func FullRequest(context *gin.Context, proxy *globals.Proxy, target *globals.Target) string {
 	var raw string
 	if target.Phase == 0 && target.Alias == "full-request" && target.Name == "raw" && target.Immutable && target.TargetID == nil {
 		var headers strings.Builder
@@ -21,7 +21,7 @@ func FullRequest(context *gin.Context, target *globals.Target) string {
 		bodyBytes, err := io.ReadAll(context.Request.Body)
 		if err != nil {
 			msg := fmt.Sprintf("Target %d: %v", target.ID, err)
-			context.Error(errors.New(msg))
+			errors.WriteErrorTargetLog(proxy, msg)
 		} else {
 			context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 			raw = fmt.Sprintf("%s\n%s", headers.String(), string(bodyBytes))

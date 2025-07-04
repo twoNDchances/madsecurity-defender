@@ -48,6 +48,11 @@ func PrepareProxy() (*globals.Proxy, bool) {
 		log.Println(utils.NewProxyError("Severity.Critical", err.Error()))
 		status = false
 	}
+	errorEnable, err := utils.ToBoolean(globals.ProxyVars["history.error.enable"])
+	if err != nil {
+		log.Println(utils.NewProxyError("History.Error.Enable", err.Error()))
+		status = false
+	}
 	if !status {
 		return nil, status
 	}
@@ -69,6 +74,9 @@ func PrepareProxy() (*globals.Proxy, bool) {
 			ERROR:    erroR,
 			CRITICAL: critical,
 		},
+		HistoryAuditPath:   globals.ProxyVars["history.audit.path"],
+		HistoryErrorEnable: errorEnable,
+		HistoryErrorPath:   globals.ProxyVars["history.error.path"],
 	}
 	if errors := proxy.Validate(); errors != nil {
 		for _, err := range errors {

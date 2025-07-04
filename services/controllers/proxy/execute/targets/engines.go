@@ -6,7 +6,9 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"madsecurity-defender/globals"
+	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/utils"
 	"math"
 	"slices"
@@ -30,8 +32,8 @@ func IndexOf(targets *globals.ListString, index int) string {
 	return (*targets)[index]
 }
 
-func ProcessArrayTarget(context *gin.Context, target *globals.Target) any {
-	targetValue := GetArrayTarget(context, target)
+func ProcessArrayTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
+	targetValue := GetArrayTarget(context, proxy, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
 			if target.FinalDatatype == "array" {
@@ -42,7 +44,8 @@ func ProcessArrayTarget(context *gin.Context, target *globals.Target) any {
 				if *target.Engine == "indexOf" {
 					engineConfiguration, err := strconv.Atoi(*target.EngineConfiguration)
 					if err != nil {
-						context.Error(err)
+						msg := fmt.Sprintf("Target %d: %v", target.ID, err)
+						errors.WriteErrorEngineLog(proxy, msg)
 						engineConfiguration = 0
 					}
 					return IndexOf(&targetValue, engineConfiguration)
@@ -84,8 +87,8 @@ func Remainder(target float64, number float64) float64 {
 	return math.Mod(target, number)
 }
 
-func ProcessNumberTarget(context *gin.Context, target *globals.Target) any {
-	targetValue := GetNumberTarget(context, target)
+func ProcessNumberTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
+	targetValue := GetNumberTarget(context, proxy, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
 			if target.FinalDatatype == "array" {
@@ -93,7 +96,8 @@ func ProcessNumberTarget(context *gin.Context, target *globals.Target) any {
 			if target.FinalDatatype == "number" {
 				engineConfiguration, err := utils.ToFloat64(*target.EngineConfiguration)
 				if err != nil {
-					context.Error(err)
+					msg := fmt.Sprintf("Target %d: %v", target.ID, err)
+					errors.WriteErrorEngineLog(proxy, msg)
 					engineConfiguration = 0
 				}
 				if *target.Engine == "addition" {
@@ -189,8 +193,8 @@ func Hash(target string, algorithm string) string {
 	return ""
 }
 
-func ProcessStringTarget(context *gin.Context, target *globals.Target) any {
-	targetValue := GetStringTarget(context, target)
+func ProcessStringTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
+	targetValue := GetStringTarget(context, proxy, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
 			if target.FinalDatatype == "array" {
