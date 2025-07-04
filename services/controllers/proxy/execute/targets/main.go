@@ -75,16 +75,13 @@ func ProcessUnimmutableTarget(context *gin.Context, target *globals.Target) any 
 	return targetProcessed
 }
 
-func ProcessRefererTarget(context *gin.Context, targetId uint) any {
+func ProcessRefererTarget(context *gin.Context, targetId uint) ([]globals.Target, any) {
 	targetPath := GetToRootTargets(context, targetId)
+	var targetProcessed any
 	if len(targetPath) == 0 {
 		msg := fmt.Sprintf("Target %d: not found Target", targetId)
 		context.Error(errors.New(msg))
-		return nil
-	}
-	var targetProcessed any
-	if len(targetPath) == 0 {
-		return targetProcessed
+		return targetPath, targetProcessed
 	}
 	root := targetPath[0]
 	if root.Immutable {
@@ -94,10 +91,10 @@ func ProcessRefererTarget(context *gin.Context, targetId uint) any {
 	}
 	if targetProcessed == nil {
 		//
-		return nil
+		return targetPath, targetProcessed
 	}
 	if len(targetPath[1:]) == 0 {
-		return targetProcessed
+		return targetPath, targetProcessed
 	}
 	targetChains := targetPath[1:]
 	for _, targetChain := range targetChains {
@@ -212,25 +209,28 @@ func ProcessRefererTarget(context *gin.Context, targetId uint) any {
 			}
 		}
 	}
-	return targetProcessed
+	return targetPath, targetProcessed
 }
 
-func ProcessTarget(context *gin.Context, targetId uint) any {
+func ProcessTarget(context *gin.Context, targetId uint) ([]globals.Target, any) {
+	var targetPath []globals.Target
 	target, ok := globals.Targets[targetId]
 	if !ok {
-		return nil
+		return nil, nil
 	}
 	var targetProcessed any
 	if target.Immutable {
+		targetPath = []globals.Target{target}
 		targetProcessed = ProcessImmutableTarget(context, &target)
 	} else {
 		switch target.Phase {
 		case 1:
 			switch target.Type {
 			case "header", "url.args":
+				targetPath = []globals.Target{target}
 				targetProcessed = ProcessUnimmutableTarget(context, &target)
 			case "target":
-				targetProcessed = ProcessRefererTarget(context, targetId)
+				targetPath, targetProcessed = ProcessRefererTarget(context, targetId)
 			}
 		case 2:
 			switch target.Type {
@@ -243,5 +243,5 @@ func ProcessTarget(context *gin.Context, targetId uint) any {
 			}
 		}
 	}
-	return targetProcessed
+	return targetPath, targetProcessed
 }

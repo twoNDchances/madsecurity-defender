@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/actions"
+	"madsecurity-defender/services/controllers/proxy/execute/logistics"
 	perform "madsecurity-defender/services/controllers/proxy/execute/rules"
 	"madsecurity-defender/services/controllers/proxy/execute/targets"
 	"slices"
@@ -15,7 +16,7 @@ import (
 func Request(context *gin.Context, proxy *globals.Proxy) bool {
 	level := globals.ViolationLevel
 	score := globals.ViolationScore
-	var scoreDefault int
+	var defaultScore int
 	for _, group := range globals.ListGroups {
 		if group.Level != uint(level) {
 			continue
@@ -31,20 +32,24 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 		}
 		rules := ruleGetted()
 		for _, rule := range rules {
-			targetGetted := func() any {
-				var targetProcessed any
+			targetGetted := func() ([]globals.Target, any) {
+				var (
+					targetPath []globals.Target
+					targetProcessed any
+				)
 				target, ok := globals.Targets[rule.TargetID]
 				if ok {
 					if target.Immutable {
+						targetPath = []globals.Target{target}
 						targetProcessed = targets.ProcessImmutableTarget(context, &target)
 					} else {
-						targetProcessed = targets.ProcessTarget(context, target.ID)
+						targetPath, targetProcessed = targets.ProcessTarget(context, target.ID)
 					}
 				}
-				return targetProcessed
+				return targetPath, targetProcessed
 			}
-			target := targetGetted()
-			if target == nil {
+			targetPath, targetValue := targetGetted()
+			if targetValue == nil {
 				msg := fmt.Sprintf("Target %d: unobtainable Target", rule.TargetID)
 				context.Error(errors.New(msg))
 				continue
@@ -52,28 +57,43 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 			if !slices.Contains(globals.ListUint8{0,1,2}, rule.Phase) {
 				continue
 			}
-			if !perform.CheckRule(context, target, &rule) {
+			if !perform.CheckRule(context, targetValue, &rule) {
 				continue
 			}
 			if rule.Action == nil {
 				continue
 			}
-			targetInstace := globals.Targets[rule.TargetID]
+			target := globals.Targets[rule.TargetID]
 			forceReturn, result := actions.Perform(
 				context,
 				proxy,
-				&targetInstace,
+				&target,
+				targetValue,
 				&rule,
-				&scoreDefault,
+				&defaultScore,
 				&score,
 				&level,
 			)
+			if !result {
+				logistic := logistics.NewLogistic(
+					rule.Log,
+					rule.Time,
+					rule.UserAgent,
+					rule.ClientIP,
+					rule.Method,
+					rule.Path,
+					rule.Output,
+					rule.Target,
+					rule.Rule,
+				)
+				logistic.Write(context, "audit/madsec_audit.log", targetValue, &targetPath, &rule)
+			}
 			if forceReturn {
 				return result
 			}
 		}
 	}
-	return scoreDefault < score
+	return defaultScore < score
 }
 
 func Response() {

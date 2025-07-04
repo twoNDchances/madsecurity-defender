@@ -55,12 +55,14 @@ type Rule struct {
 	Severity            *string `json:"severity"`
 	Log                 bool    `json:"log"`
 	Time                bool    `json:"time"`
-	Status              bool    `json:"status"`
 	UserAgent           bool    `json:"user_agent"`
 	ClientIP            bool    `json:"client_ip"`
 	Method              bool    `json:"method"`
 	Path                bool    `json:"path"`
 	WordlistID          *uint   `json:"wordlist_id"`
+	Output              bool    `json:"output"`
+	Target              bool    `json:"target"`
+	Rule                bool    `json:"rule"`
 }
 
 func (r Rule) GetID() uint {

@@ -40,7 +40,7 @@ func Inspect(context *gin.Context, proxy *globals.Proxy, rule *globals.Rule, sco
 	return false, true
 }
 
-func Request(context *gin.Context, target *globals.Target, rule *globals.Rule) (bool, bool) {
+func Request(context *gin.Context, target any, rule *globals.Rule) (bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d missing Action Configuration for Request action", rule.ID)
 		context.Error(errors.New(msg))
@@ -58,7 +58,10 @@ func Request(context *gin.Context, target *globals.Target, rule *globals.Rule) (
 		context.Error(errors.New(msg))
 		return true, false
 	}
-	request, err := utils.NewHttp(options[0], options[1], nil)
+	body := globals.DictAny{
+		// ""
+	}
+	request, err := utils.NewHttp(options[0], options[1], body)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		context.Error(errors.New(msg))
@@ -111,7 +114,7 @@ func SetLevel(context *gin.Context, rule *globals.Rule, level *int) (bool, bool)
 	return false, true
 }
 
-func Report(context *gin.Context, proxy *globals.Proxy, target *globals.Target, rule *globals.Rule) (bool, bool) {
+func Report(context *gin.Context, proxy *globals.Proxy, target any, rule *globals.Rule) (bool, bool) {
 	body := map[string]any{
 		//
 	}

@@ -10,6 +10,7 @@ func Perform(
 	context *gin.Context,
 	proxy *globals.Proxy,
 	target *globals.Target,
+	targetValue any,
 	rule *globals.Rule,
 	defaultScore *int,
 	score *int,
@@ -24,13 +25,13 @@ func Perform(
 	case "inspect":
 		forceReturn, result = Inspect(context, proxy, rule, defaultScore)
 	case "request":
-		forceReturn, result = Request(context, target, rule)
+		forceReturn, result = Request(context, targetValue, rule)
 	case "setScore":
 		forceReturn, result = SetScore(context, rule, score)
 	case "setLevel":
 		forceReturn, result = SetLevel(context, rule, level)
 	case "report":
-		forceReturn, result = Report(context, proxy, target, rule)
+		forceReturn, result = Report(context, proxy, targetValue, rule)
 	}
 	return forceReturn, result
 }
