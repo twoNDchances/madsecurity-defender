@@ -12,12 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ProcessImmutableTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
+func ProcessImmutableTarget(context *gin.Context, target *globals.Target) any {
 	var targetGetted any
 	switch target.Phase {
 	case 0:
 		if target.Alias == "full-request" {
-			targetGetted = phase0.FullRequest(context, proxy, target)
+			targetGetted = phase0.FullRequest(context, target)
 		}
 	case 1:
 		switch target.Alias {
@@ -32,7 +32,7 @@ func ProcessImmutableTarget(context *gin.Context, proxy *globals.Proxy, target *
 		case "header-size":
 			targetGetted = phase1.HeaderSize(context, target)
 		case "url-port":
-			targetGetted = phase1.UrlPort(context, proxy, target)
+			targetGetted = phase1.UrlPort(context, target)
 		case "url-args-size":
 			targetGetted = phase1.UrlArgsSize(context, target)
 		case "client-ip":
@@ -62,32 +62,32 @@ func ProcessImmutableTarget(context *gin.Context, proxy *globals.Proxy, target *
 	return targetGetted
 }
 
-func ProcessUnimmutableTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
+func ProcessUnimmutableTarget(context *gin.Context, target *globals.Target) any {
 	var targetProcessed any
 	switch target.Datatype {
 	case "array":
-		targetProcessed = ProcessArrayTarget(context, proxy, target)
+		targetProcessed = ProcessArrayTarget(context, target)
 	case "number":
-		targetProcessed = ProcessNumberTarget(context, proxy, target)
+		targetProcessed = ProcessNumberTarget(context, target)
 	case "string":
-		targetProcessed = ProcessStringTarget(context, proxy, target)
+		targetProcessed = ProcessStringTarget(context, target)
 	}
 	return targetProcessed
 }
 
-func ProcessRefererTarget(context *gin.Context, proxy *globals.Proxy, targetId uint) ([]globals.Target, any) {
+func ProcessRefererTarget(context *gin.Context, targetId uint) ([]globals.Target, any) {
 	targetPath := GetToRootTargets(context, targetId)
 	var targetProcessed any
 	if len(targetPath) == 0 {
 		msg := fmt.Sprintf("Target %d: not found Target", targetId)
-		errors.WriteErrorTargetLog(proxy, msg)
+		errors.WriteErrorTargetLog(msg)
 		return targetPath, targetProcessed
 	}
 	root := targetPath[0]
 	if root.Immutable {
-		targetProcessed = ProcessImmutableTarget(context, proxy, &root)
+		targetProcessed = ProcessImmutableTarget(context, &root)
 	} else {
-		targetProcessed = ProcessUnimmutableTarget(context, proxy, &root)
+		targetProcessed = ProcessUnimmutableTarget(context, &root)
 	}
 	if targetProcessed == nil {
 		//
@@ -113,7 +113,7 @@ func ProcessRefererTarget(context *gin.Context, proxy *globals.Proxy, targetId u
 						engineConfiguration, err := strconv.Atoi(*targetChain.EngineConfiguration)
 						if err != nil {
 							msg := fmt.Sprintf("Target %d: %v", targetId, err)
-							errors.WriteErrorTargetLog(proxy, msg)
+							errors.WriteErrorTargetLog(msg)
 							engineConfiguration = 0
 						}
 						targetProcessed = IndexOf(&t, engineConfiguration)
@@ -126,7 +126,7 @@ func ProcessRefererTarget(context *gin.Context, proxy *globals.Proxy, targetId u
 					engineConfiguration, err := utils.ToFloat64(*targetChain.EngineConfiguration)
 					if err != nil {
 						msg := fmt.Sprintf("Target %d: %v", targetId, err)
-						errors.WriteErrorTargetLog(proxy, msg)
+						errors.WriteErrorTargetLog(msg)
 						engineConfiguration = 0
 					}
 					if *targetChain.Engine == "addition" {
@@ -214,7 +214,7 @@ func ProcessRefererTarget(context *gin.Context, proxy *globals.Proxy, targetId u
 	return targetPath, targetProcessed
 }
 
-func ProcessTarget(context *gin.Context, proxy *globals.Proxy, targetId uint) ([]globals.Target, any) {
+func ProcessTarget(context *gin.Context, targetId uint) ([]globals.Target, any) {
 	var targetPath []globals.Target
 	target, ok := globals.Targets[targetId]
 	if !ok {
@@ -223,16 +223,16 @@ func ProcessTarget(context *gin.Context, proxy *globals.Proxy, targetId uint) ([
 	var targetProcessed any
 	if target.Immutable {
 		targetPath = []globals.Target{target}
-		targetProcessed = ProcessImmutableTarget(context, proxy, &target)
+		targetProcessed = ProcessImmutableTarget(context, &target)
 	} else {
 		switch target.Phase {
 		case 1:
 			switch target.Type {
 			case "header", "url.args":
 				targetPath = []globals.Target{target}
-				targetProcessed = ProcessUnimmutableTarget(context, proxy, &target)
+				targetProcessed = ProcessUnimmutableTarget(context, &target)
 			case "target":
-				targetPath, targetProcessed = ProcessRefererTarget(context, proxy, targetId)
+				targetPath, targetProcessed = ProcessRefererTarget(context, targetId)
 			}
 		case 2:
 			switch target.Type {

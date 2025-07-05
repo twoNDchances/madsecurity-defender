@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func MethodNotAllowed(context *gin.Context, security *globals.Security) {
+func MethodNotAllowed(context *gin.Context) {
 	context.Error(errors.New("method mismatch"))
-	if security.MaskEnable {
-		Mask(context, security)
+	if globals.SecurityConfigs.MaskEnable {
+		Mask(context)
 		return
 	}
 	context.AbortWithStatusJSON(

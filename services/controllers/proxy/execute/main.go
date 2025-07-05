@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Request(context *gin.Context, proxy *globals.Proxy) bool {
+func Request(context *gin.Context) bool {
 	level := globals.ViolationLevel
 	score := globals.ViolationScore
 	var defaultScore int
@@ -41,25 +41,23 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 				if ok {
 					if target.Immutable {
 						targetPath = []globals.Target{target}
-						targetProcessed = targets.ProcessImmutableTarget(context, proxy, &target)
+						targetProcessed = targets.ProcessImmutableTarget(context, &target)
 					} else {
-						targetPath, targetProcessed = targets.ProcessTarget(context, proxy, target.ID)
+						targetPath, targetProcessed = targets.ProcessTarget(context, target.ID)
 					}
 				}
 				return targetPath, targetProcessed
 			}
 			targetPath, targetValue := targetGetted()
 			if targetValue == nil {
-				if proxy.HistoryErrorEnable {
-					msg := fmt.Sprintf("Target %d: unobtainable Target", rule.TargetID)
-					errors.WriteErrorTargetLog(proxy, msg)
-				}
+				msg := fmt.Sprintf("Target %d: unobtainable Target", rule.TargetID)
+				errors.WriteErrorTargetLog(msg)
 				continue
 			}
 			if !slices.Contains(globals.ListUint8{0,1,2}, rule.Phase) {
 				continue
 			}
-			if !comparators.Compare(proxy, targetValue, &rule) {
+			if !comparators.Compare(targetValue, &rule) {
 				continue
 			}
 			if rule.Action == nil {
@@ -67,7 +65,6 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 			}
 			target := globals.Targets[rule.TargetID]
 			forceReturn, result := actions.Perform(
-				proxy,
 				&target,
 				targetValue,
 				&rule,
@@ -87,10 +84,10 @@ func Request(context *gin.Context, proxy *globals.Proxy) bool {
 					rule.Target,
 					rule.Rule,
 				)
-				err := logistic.Write(context, proxy, targetValue, &targetPath, &rule)
+				err := logistic.Write(context, targetValue, &targetPath, &rule)
 				if err != nil {
 					msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-					errors.WriteErrorLogisticLog(proxy, msg)
+					errors.WriteErrorLogisticLog(msg)
 				}
 			}
 			if forceReturn {

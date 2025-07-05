@@ -2,45 +2,45 @@ package comparators
 
 import "madsecurity-defender/globals"
 
-func Compare(proxy *globals.Proxy, target any, rule *globals.Rule) bool {
+func Compare(target any, rule *globals.Rule) bool {
 	var result bool
 	switch t := target.(type) {
 	case globals.ListString:
 		switch rule.Comparator {
 		case "@similar":
-			result = Similar(proxy, t, rule)
+			result = Similar(t, rule)
 		case "@contains":
-			result = Contains(proxy, t, rule)
+			result = Contains(t, rule)
 		}
 	case float64:
 		switch rule.Comparator {
 		case "@equal":
-			result = Equal(proxy, t, rule)
+			result = Equal(t, rule)
 		case "@greaterThan":
-			result = GreaterThan(proxy, t, rule)
+			result = GreaterThan(t, rule)
 		case "@greaterThanOrEqual":
-			result = GreaterThanOrEqual(proxy, t, rule)
+			result = GreaterThanOrEqual(t, rule)
 		case "@lessThan":
-			result = LessThan(proxy, t, rule)
+			result = LessThan(t, rule)
 		case "@lessThanOrEqual":
-			result = LessThanOrEqual(proxy, t, rule)
+			result = LessThanOrEqual(t, rule)
 		case "@inRange":
-			result = InRange(proxy, t, rule)
+			result = InRange(t, rule)
 		}
 	case string:
 		switch rule.Comparator {
 		case "@mirror":
-			result = Mirror(proxy, t, rule)
+			result = Mirror(t, rule)
 		case "@startsWith":
-			result = StartsWith(proxy, t, rule)
+			result = StartsWith(t, rule)
 		case "@endsWith":
-			result = EndsWith(proxy, t, rule)
+			result = EndsWith(t, rule)
 		case "@check":
-			result = Check(proxy, t, rule)
+			result = Check(t, rule)
 		case "@regex":
-			result = Regex(proxy, t, rule)
+			result = Regex(t, rule)
 		case "@checkRegex":
-			result = CheckRegex(proxy, t, rule)
+			result = CheckRegex(t, rule)
 		}
 	}
 	return result

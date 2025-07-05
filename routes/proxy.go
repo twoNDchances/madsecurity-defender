@@ -2,17 +2,16 @@ package routes
 
 import (
 	"madsecurity-defender/controllers"
-	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RouteProxy(router *gin.Engine, proxy *globals.Proxy, storage *globals.Storage, backend *globals.Backend) {
+func RouteProxy(router *gin.Engine) {
 	investigation := router.Use(
-		execute.Investigate(proxy),
+		execute.Investigate(),
 	)
 	{
-		investigation.Any("/*backendPath", controllers.ReturnBackend(backend))
+		investigation.Any("/*backendPath", controllers.ReturnBackend)
 	}
 }

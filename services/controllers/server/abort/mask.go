@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Mask(context *gin.Context, security *globals.Security) {
-	if security.MaskType == "html" {
-		NotFoundHtml(context, security.MaskHtml)
+func Mask(context *gin.Context) {
+	if globals.SecurityConfigs.MaskType == "html" {
+		NotFoundHtml(context, globals.SecurityConfigs.MaskHtml)
 	}
-	if security.MaskType == "json" {
-		NotFoundJson(context, security.MaskJson)
+	if globals.SecurityConfigs.MaskType == "json" {
+		NotFoundJson(context, globals.SecurityConfigs.MaskJson)
 	}
 }

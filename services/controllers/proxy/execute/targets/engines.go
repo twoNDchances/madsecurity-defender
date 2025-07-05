@@ -32,8 +32,8 @@ func IndexOf(targets *globals.ListString, index int) string {
 	return (*targets)[index]
 }
 
-func ProcessArrayTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
-	targetValue := GetArrayTarget(context, proxy, target)
+func ProcessArrayTarget(context *gin.Context, target *globals.Target) any {
+	targetValue := GetArrayTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
 			if target.FinalDatatype == "array" {
@@ -45,7 +45,7 @@ func ProcessArrayTarget(context *gin.Context, proxy *globals.Proxy, target *glob
 					engineConfiguration, err := strconv.Atoi(*target.EngineConfiguration)
 					if err != nil {
 						msg := fmt.Sprintf("Target %d: %v", target.ID, err)
-						errors.WriteErrorEngineLog(proxy, msg)
+						errors.WriteErrorEngineLog(msg)
 						engineConfiguration = 0
 					}
 					return IndexOf(&targetValue, engineConfiguration)
@@ -87,8 +87,8 @@ func Remainder(target float64, number float64) float64 {
 	return math.Mod(target, number)
 }
 
-func ProcessNumberTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
-	targetValue := GetNumberTarget(context, proxy, target)
+func ProcessNumberTarget(context *gin.Context, target *globals.Target) any {
+	targetValue := GetNumberTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
 			if target.FinalDatatype == "array" {
@@ -97,7 +97,7 @@ func ProcessNumberTarget(context *gin.Context, proxy *globals.Proxy, target *glo
 				engineConfiguration, err := utils.ToFloat64(*target.EngineConfiguration)
 				if err != nil {
 					msg := fmt.Sprintf("Target %d: %v", target.ID, err)
-					errors.WriteErrorEngineLog(proxy, msg)
+					errors.WriteErrorEngineLog(msg)
 					engineConfiguration = 0
 				}
 				if *target.Engine == "addition" {
@@ -193,8 +193,8 @@ func Hash(target string, algorithm string) string {
 	return ""
 }
 
-func ProcessStringTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) any {
-	targetValue := GetStringTarget(context, proxy, target)
+func ProcessStringTarget(context *gin.Context, target *globals.Target) any {
+	targetValue := GetStringTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
 			if target.FinalDatatype == "array" {

@@ -13,10 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Revoke(context *gin.Context, security *globals.Security, storage *globals.Storage) {
+func Revoke(context *gin.Context) {
 	var responseApiForm globals.Revocation
 	if err := context.ShouldBindBodyWithJSON(&responseApiForm); err != nil {
-		abort.BadRequest(context, security, err.Error())
+		abort.BadRequest(context, err.Error())
 		return
 	}
 	var wg sync.WaitGroup
@@ -35,7 +35,7 @@ func Revoke(context *gin.Context, security *globals.Security, storage *globals.S
 		words     int64
 		errs      globals.ListError
 	)
-	if storage.Type == "redis" {
+	if globals.StorageConfigs.Type == "redis" {
 		wg.Add(5)
 		go inredis.Remove(&wg, &responseApiForm.Groups, "groups", &groups, &errs)
 		go inredis.Remove(&wg, &responseApiForm.Rules, "rules", &rules, &errs)
@@ -52,7 +52,7 @@ func Revoke(context *gin.Context, security *globals.Security, storage *globals.S
 	}
 	globals.ListGroups = tmpListGroups
 	responseApiForm = globals.Revocation{}
-	switch storage.Type {
+	switch globals.StorageConfigs.Type {
 	case "memory":
 		data = gin.H{
 			"group":    len(globals.Groups),
@@ -63,7 +63,7 @@ func Revoke(context *gin.Context, security *globals.Security, storage *globals.S
 		}
 	case "redis":
 		if len(errs) > 0 {
-			abort.InternalServerError(context, security, errors.Join(errs...).Error())
+			abort.InternalServerError(context, errors.Join(errs...).Error())
 			return
 		}
 		data = gin.H{

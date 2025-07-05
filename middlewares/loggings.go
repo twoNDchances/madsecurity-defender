@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Log(logging *globals.Log) gin.HandlerFunc {
+func Log() gin.HandlerFunc {
 	return gin.LoggerWithFormatter(func(parameters gin.LogFormatterParams) string {
 		logDefaultFormat := func(separator string) string {
 			return fmt.Sprintf(
@@ -58,23 +58,23 @@ func Log(logging *globals.Log) gin.HandlerFunc {
 				lastField,
 			) + "\n"
 		}
-		if logging.File.Enable {
-			file, err := os.OpenFile(logging.File.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if globals.LogConfigs.File.Enable {
+			file, err := os.OpenFile(globals.LogConfigs.File.Name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
 				log.Println(utils.NewServerError("Log.File.Name", err.Error()))
 			} else {
-				if logging.File.Type == "json" {
+				if globals.LogConfigs.File.Type == "json" {
 					file.WriteString(logJsonFormat("", ""))
 				} else {
-					file.WriteString(logDefaultFormat(logging.File.Separator))
+					file.WriteString(logDefaultFormat(globals.LogConfigs.File.Separator))
 				}
 			}
 		}
-		if logging.Console.Enable {
-			if logging.Console.Type == "json" {
+		if globals.LogConfigs.Console.Enable {
+			if globals.LogConfigs.Console.Type == "json" {
 				return logJsonFormat("\n    ", "\n")
 			}
-			return logDefaultFormat(logging.Console.Separator)
+			return logDefaultFormat(globals.LogConfigs.Console.Separator)
 		}
 		return ""
 	})

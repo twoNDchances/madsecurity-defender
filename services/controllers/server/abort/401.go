@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Unauthorized(context *gin.Context, security *globals.Security) {
+func Unauthorized(context *gin.Context) {
 	context.Error(errors.New("basic auth fail"))
-	if security.MaskEnable {
-		Mask(context, security)
+	if globals.SecurityConfigs.MaskEnable {
+		Mask(context)
 		return
 	}
 	context.AbortWithStatusJSON(

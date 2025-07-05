@@ -55,7 +55,7 @@ func (l *Logistic) build() globals.DictAny {
 func (l *Logistic) generate(context any, output any, targets *[]globals.Target, rule *globals.Rule) globals.DictAny {
 	content := l.build()
 	if l.Time {
-		content["time"] = time.Now().String()
+		content["time"] = time.Now().Format(utils.TimeStampLayout)
 	}
 	switch ctx := context.(type) {
 	case *gin.Context:
@@ -120,16 +120,16 @@ func (l *Logistic) generate(context any, output any, targets *[]globals.Target, 
 	return content
 }
 
-func (l *Logistic) Write(context any, proxy *globals.Proxy, output any, targets *[]globals.Target, rule *globals.Rule) error {
+func (l *Logistic) Write(context any, output any, targets *[]globals.Target, rule *globals.Rule) error {
 	if l.Enable {
 		content := l.generate(context, output, targets, rule)
 		data, err := json.Marshal(content)
 		if err != nil {
 			return err
 		}
-		auditPath := fmt.Sprintf("%s.json", proxy.HistoryAuditPath)
-		errorPath := fmt.Sprintf("%s.log", proxy.HistoryErrorPath)
-		utils.WriteAudit(auditPath, errorPath, data)
+		auditPath := fmt.Sprintf("%s.json", globals.ProxyConfigs.HistoryAuditPath)
+		errorPath := fmt.Sprintf("%s.log", globals.ProxyConfigs.HistoryErrorPath)
+		utils.WriteAudit(auditPath, errorPath, string(data))
 	}
 	return nil
 }

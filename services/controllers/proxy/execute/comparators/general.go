@@ -10,11 +10,11 @@ import (
 	"strings"
 )
 
-func Similar(proxy *globals.Proxy, targets globals.ListString, rule *globals.Rule) bool {
+func Similar(targets globals.ListString, rule *globals.Rule) bool {
 	var result bool
 	if rule.WordlistID == nil {
 		msg := fmt.Sprintf("Rule %d: missing Wordlist ID for Similar comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	words := make(globals.ListString, 0)
@@ -36,11 +36,11 @@ func Similar(proxy *globals.Proxy, targets globals.ListString, rule *globals.Rul
 	return result
 }
 
-func Contains(proxy *globals.Proxy, targets globals.ListString, rule *globals.Rule) bool {
+func Contains(targets globals.ListString, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Contains comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -51,17 +51,17 @@ func Contains(proxy *globals.Proxy, targets globals.ListString, rule *globals.Ru
 	return result
 }
 
-func Equal(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
+func Equal(target float64, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Equal comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -72,17 +72,17 @@ func Equal(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
 	return result
 }
 
-func GreaterThan(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
+func GreaterThan(target float64, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Greater Than comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -93,17 +93,17 @@ func GreaterThan(proxy *globals.Proxy, target float64, rule *globals.Rule) bool 
 	return result
 }
 
-func LessThan(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
+func LessThan(target float64, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Less Than comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -114,17 +114,17 @@ func LessThan(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
 	return result
 }
 
-func GreaterThanOrEqual(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
+func GreaterThanOrEqual(target float64, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Greater Than Or Equal comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -135,17 +135,17 @@ func GreaterThanOrEqual(proxy *globals.Proxy, target float64, rule *globals.Rule
 	return result
 }
 
-func LessThanOrEqual(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
+func LessThanOrEqual(target float64, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Less Than Or Equal comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	value, err := utils.ToFloat64(*rule.Value)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -156,29 +156,29 @@ func LessThanOrEqual(proxy *globals.Proxy, target float64, rule *globals.Rule) b
 	return result
 }
 
-func InRange(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
+func InRange(target float64, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for In Range comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	values := strings.Split(*rule.Value, ",")
 	if len(values) != 2 {
 		msg := fmt.Sprintf("Rule %d: unsatisfactory value for In Range comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	value1, err := utils.ToFloat64(values[0])
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	value2, err := utils.ToFloat64(values[1])
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -189,11 +189,11 @@ func InRange(proxy *globals.Proxy, target float64, rule *globals.Rule) bool {
 	return result
 }
 
-func Mirror(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
+func Mirror(target string, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Mirror comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -204,11 +204,11 @@ func Mirror(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
 	return result
 }
 
-func StartsWith(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
+func StartsWith(target string, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Starts With comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -219,11 +219,11 @@ func StartsWith(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
 	return result
 }
 
-func EndsWith(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
+func EndsWith(target string, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for End With comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -234,11 +234,11 @@ func EndsWith(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
 	return result
 }
 
-func Check(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
+func Check(target string, rule *globals.Rule) bool {
 	var result bool
 	if rule.WordlistID == nil {
 		msg := fmt.Sprintf("Rule %d: missing Wordlist ID for Check comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	words := make(globals.ListString, 0)
@@ -255,17 +255,17 @@ func Check(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
 	return result
 }
 
-func Regex(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
+func Regex(target string, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {
 		msg := fmt.Sprintf("Rule %d: missing Value for Regex comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	matched, err := regexp.MatchString(*rule.Value, target)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	if rule.Inverse {
@@ -276,11 +276,11 @@ func Regex(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
 	return result
 }
 
-func CheckRegex(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
+func CheckRegex(target string, rule *globals.Rule) bool {
 	var result bool
 	if rule.WordlistID == nil {
 		msg := fmt.Sprintf("Rule %d: missing Wordlist ID for Check Regex comparator", rule.ID)
-		errors.WriteErrorComparatorLog(proxy, msg)
+		errors.WriteErrorComparatorLog(msg)
 		return result
 	}
 	words := make(globals.ListString, 0)
@@ -293,7 +293,7 @@ func CheckRegex(proxy *globals.Proxy, target string, rule *globals.Rule) bool {
 		matched, err := regexp.MatchString(word, target)
 		if err != nil {
 			msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-			errors.WriteErrorComparatorLog(proxy, msg)
+			errors.WriteErrorComparatorLog(msg)
 			break
 		}
 		if rule.Inverse {

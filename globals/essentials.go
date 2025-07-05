@@ -20,12 +20,12 @@ var (
 	ViolationScore int
 	ViolationLevel int
 
-	// BackendConfigs  *Backend
-	// LogConfigs      *Log
-	// ProxyConfigs    *Proxy
-	// SecurityConfigs *Security
-	// ServerConfigs   *Server
-	// StorageConfigs  *Storage
+	BackendConfigs  *Backend
+	LogConfigs      *Log
+	ProxyConfigs    *Proxy
+	SecurityConfigs *Security
+	ServerConfigs   *Server
+	StorageConfigs  *Storage
 )
 
 func ContainsID[T Identifiable](models []Identifiable, id uint) bool {

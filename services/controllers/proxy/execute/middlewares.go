@@ -1,15 +1,14 @@
 package execute
 
 import (
-	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/server/abort"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Investigate(proxy *globals.Proxy) gin.HandlerFunc {
+func Investigate() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		if !Request(context, proxy) {
+		if !Request(context) {
 			abort.Forbidden(context)
 			return
 		}

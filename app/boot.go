@@ -27,75 +27,75 @@ func Boot() {
 		info.NewBanner().Print()
 	}
 
-	server, status := loads.PrepareServer()
+	globals.ServerConfigs, status = loads.PrepareServer()
 	if !status {
 		return
 	}
 
-	logging, status := loads.PrepareLog()
+	globals.LogConfigs, status = loads.PrepareLog()
 	if !status {
 		return
 	}
 
-	security, status := loads.PrepareSecurity()
+	globals.SecurityConfigs, status = loads.PrepareSecurity()
 	if !status {
 		return
 	}
 
-	storage, status := loads.PrepareStorage()
+	globals.StorageConfigs, status = loads.PrepareStorage()
 	if !status {
 		return
 	}
 
-	proxy, status := loads.PrepareProxy()
+	globals.ProxyConfigs, status = loads.PrepareProxy()
 	if !status {
 		return
 	}
 
-	backend, status := loads.PrepareBackend()
+	globals.BackendConfigs, status = loads.PrepareBackend()
 	if !status {
 		return
 	}
 
-	if server.Entry.Port == proxy.Entry.Port {
+	if globals.ServerConfigs.Entry.Port == globals.ProxyConfigs.Entry.Port {
 		log.Println(utils.NewServerError("Port", "Conflict with [Proxy][Port]"))
 		return
 	}
 
-	log.Println(utils.NewColor(fmt.Sprintf("Storage in use is %s", storage.Type), utils.BLUE))
+	log.Println(utils.NewColor(fmt.Sprintf("Storage in use is %s", globals.StorageConfigs.Type), utils.BLUE))
 
 	gin.SetMode(gin.ReleaseMode)
 
-	go bootServer(server, logging, security, storage)
+	go bootServer()
 
-	go bootProxy(proxy, logging, storage, backend)
+	go bootProxy()
 
 	select {}
 }
 
-func bootServer(server *globals.Server, logging *globals.Log, security *globals.Security, storage *globals.Storage) {
+func bootServer() {
 	defender := gin.New()
 	defender.Use(gin.Recovery())
-	defender.Use(middlewares.Log(logging))
+	defender.Use(middlewares.Log())
 	defender.Use(middlewares.Prevent())
 
 	defender.HandleMethodNotAllowed = true
-	defender.NoMethod(middlewares.Check(server, security))
-	loads.PrepareServerRoute(defender, server, security, storage)
+	defender.NoMethod(middlewares.Check())
+	loads.PrepareServerRoute(defender)
 
-	promopt("Server", defender, server)
+	promopt("Server", defender, globals.ServerConfigs)
 }
 
-func bootProxy(proxy *globals.Proxy, logging *globals.Log, storage *globals.Storage, backend *globals.Backend) {
+func bootProxy() {
 	defender := gin.New()
 	defender.Use(gin.Recovery())
 
-	defender.Use(middlewares.Log(logging))
+	defender.Use(middlewares.Log())
 	defender.Use(middlewares.Prevent())
 
-	loads.PrepareProxyRoute(defender, proxy, storage, backend)
+	loads.PrepareProxyRoute(defender)
 
-	promopt("Proxy", defender, proxy)
+	promopt("Proxy", defender, globals.ProxyConfigs)
 }
 
 func promopt[T globals.Instructable](entryName string, engine *gin.Engine, entryType T) {

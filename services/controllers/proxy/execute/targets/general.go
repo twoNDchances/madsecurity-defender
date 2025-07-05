@@ -26,7 +26,7 @@ func getValueFromPhase1Type(context *gin.Context, target *globals.Target) global
 	return values
 }
 
-func GetArrayTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) globals.ListString {
+func GetArrayTarget(context *gin.Context, target *globals.Target) globals.ListString {
 	var needed globals.ListString
 	if target.Phase == 1 && target.Datatype == "array" && target.WordlistID != nil {
 		words := make(globals.ListString, 0)
@@ -45,7 +45,7 @@ func GetArrayTarget(context *gin.Context, proxy *globals.Proxy, target *globals.
 	return needed
 }
 
-func GetNumberTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) float64 {
+func GetNumberTarget(context *gin.Context, target *globals.Target) float64 {
 	var needed float64
 	if target.Phase == 1 && target.Datatype == "number" {
 		values := getValueFromPhase1Type(context, target)
@@ -53,7 +53,7 @@ func GetNumberTarget(context *gin.Context, proxy *globals.Proxy, target *globals
 			number, err := utils.ToFloat64(value)
 			if err != nil {
 				msg := fmt.Sprintf("Target %d: %v", target.ID, err)
-				errors.WriteErrorTargetLog(proxy, msg)
+				errors.WriteErrorTargetLog(msg)
 			} else {
 				needed = number
 			}
@@ -62,7 +62,7 @@ func GetNumberTarget(context *gin.Context, proxy *globals.Proxy, target *globals
 	return needed
 }
 
-func GetStringTarget(context *gin.Context, proxy *globals.Proxy, target *globals.Target) string {
+func GetStringTarget(context *gin.Context, target *globals.Target) string {
 	var needed string
 	if target.Phase == 1 && target.Datatype == "string" {
 		values := getValueFromPhase1Type(context, target)

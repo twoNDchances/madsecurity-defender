@@ -12,13 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Pass(context *gin.Context, backend *globals.Backend) {
-	remote, _ := url.Parse(backend.BuildUrl())
+func Pass(context *gin.Context) {
+	remote, _ := url.Parse(globals.BackendConfigs.BuildUrl())
 	proxy := httputil.NewSingleHostReverseProxy(remote)
 	proxy.Director = func(request *http.Request) {
 		request.URL.Scheme = remote.Scheme
 		request.URL.Host = remote.Host
-		request.URL.Path = fmt.Sprintf("%s%s", backend.Path, context.Param("backendPath"))
+		request.URL.Path = fmt.Sprintf("%s%s", globals.BackendConfigs.Path, context.Param("backendPath"))
 		request.Host = remote.Host
 		request.Header = context.Request.Header.Clone()
 

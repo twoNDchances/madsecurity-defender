@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InternalServerError(context *gin.Context, security *globals.Security, err string) {
+func InternalServerError(context *gin.Context, err string) {
 	context.Error(errors.New(err))
-	if security.MaskEnable {
-		Mask(context, security)
+	if globals.SecurityConfigs.MaskEnable {
+		Mask(context)
 		return
 	}
 	context.AbortWithStatusJSON(

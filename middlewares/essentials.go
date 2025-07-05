@@ -20,34 +20,34 @@ func Prevent() gin.HandlerFunc {
 	}
 }
 
-func Check(server *globals.Server, security *globals.Security) gin.HandlerFunc {
+func Check() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		correctMethod := true
 		switch context.FullPath() {
-		case fmt.Sprintf("%s%s", server.Prefix, server.Health):
-			if !strings.EqualFold(context.Request.Method, server.HealthMethod) {
+		case fmt.Sprintf("%s%s", globals.ServerConfigs.Prefix, globals.ServerConfigs.Health):
+			if !strings.EqualFold(context.Request.Method, globals.ServerConfigs.HealthMethod) {
 				correctMethod = false
 			}
-		case fmt.Sprintf("%s%s", server.Prefix, server.Sync):
-			if !strings.EqualFold(context.Request.Method, server.SyncMethod) {
+		case fmt.Sprintf("%s%s", globals.ServerConfigs.Prefix, globals.ServerConfigs.Sync):
+			if !strings.EqualFold(context.Request.Method, globals.ServerConfigs.SyncMethod) {
 				correctMethod = false
 			}
-		case fmt.Sprintf("%s%s", server.Prefix, server.Apply):
-			if !strings.EqualFold(context.Request.Method, server.ApplyMethod) {
+		case fmt.Sprintf("%s%s", globals.ServerConfigs.Prefix, globals.ServerConfigs.Apply):
+			if !strings.EqualFold(context.Request.Method, globals.ServerConfigs.ApplyMethod) {
 				correctMethod = false
 			}
-		case fmt.Sprintf("%s%s", server.Prefix, server.Revoke):
-			if !strings.EqualFold(context.Request.Method, server.RevokeMethod) {
+		case fmt.Sprintf("%s%s", globals.ServerConfigs.Prefix, globals.ServerConfigs.Revoke):
+			if !strings.EqualFold(context.Request.Method, globals.ServerConfigs.RevokeMethod) {
 				correctMethod = false
 			}
 		default:
 			correctMethod = false
 		}
 		if !correctMethod {
-			if security.MaskEnable {
-				abort.Mask(context, security)
+			if globals.SecurityConfigs.MaskEnable {
+				abort.Mask(context)
 			} else {
-				abort.MethodNotAllowed(context, security)
+				abort.MethodNotAllowed(context)
 			}
 		}
 		context.Next()

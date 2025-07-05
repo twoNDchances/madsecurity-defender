@@ -15,36 +15,36 @@ type Route struct {
 	handler gin.HandlerFunc
 }
 
-func RouteServer(router *gin.Engine, server *globals.Server, security *globals.Security, storage *globals.Storage) {
-	prefix := router.Group(server.Prefix)
+func RouteServer(router *gin.Engine) {
+	prefix := router.Group(globals.ServerConfigs.Prefix)
 	{
-		if security.Enable {
-			prefix.Use(middlewares.Inspect(security))
-			prefix.Use(middlewares.Authenticate(security.Username, security.Password, security))
+		if globals.SecurityConfigs.Enable {
+			prefix.Use(middlewares.Inspect())
+			prefix.Use(middlewares.Authenticate())
 		}
 		middlewareController := prefix.Use(
 			middlewares.Allow(),
 		)
 		routes := []Route{
 			{
-				method:  server.HealthMethod,
-				path:    server.Health,
+				method:  globals.ServerConfigs.HealthMethod,
+				path:    globals.ServerConfigs.Health,
 				handler: controllers.ReturnHealth,
 			},
 			{
-				method:  server.SyncMethod,
-				path:    server.Sync,
-				handler: controllers.ReturnSynchronization(security),
+				method:  globals.ServerConfigs.SyncMethod,
+				path:    globals.ServerConfigs.Sync,
+				handler: controllers.ReturnSynchronization,
 			},
 			{
-				method:  server.ApplyMethod,
-				path:    server.Apply,
-				handler: controllers.ReturnApplication(security, storage),
+				method:  globals.ServerConfigs.ApplyMethod,
+				path:    globals.ServerConfigs.Apply,
+				handler: controllers.ReturnApplication,
 			},
 			{
-				method:  server.RevokeMethod,
-				path:    server.Revoke,
-				handler: controllers.ReturnRevocation(security, storage),
+				method:  globals.ServerConfigs.RevokeMethod,
+				path:    globals.ServerConfigs.Revoke,
+				handler: controllers.ReturnRevocation,
 			},
 		}
 		for _, route := range routes {

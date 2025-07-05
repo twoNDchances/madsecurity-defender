@@ -7,13 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Inspect(security *globals.Security) gin.HandlerFunc {
+func Inspect() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		if context.RemoteIP() != security.ManagerIp {
-			if security.MaskEnable {
-				abort.Mask(context, security)
+		if context.RemoteIP() != globals.SecurityConfigs.ManagerIp {
+			if globals.SecurityConfigs.MaskEnable {
+				abort.Mask(context)
 			} else {
-				abort.Unauthorized(context, security)
+				abort.Unauthorized(context)
 			}
 			return
 		}
@@ -21,12 +21,12 @@ func Inspect(security *globals.Security) gin.HandlerFunc {
 	}
 }
 
-func Authenticate(username, password string, security *globals.Security) gin.HandlerFunc {
+func Authenticate() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		u, p, ok := context.Request.BasicAuth()
-		if !ok || u != username || p != password {
+		if !ok || u != globals.SecurityConfigs.Username || p != globals.SecurityConfigs.Password {
 			context.Header("WWW-Authenticate", `Basic realm="Restricted"`)
-			abort.Unauthorized(context, security)
+			abort.Unauthorized(context)
 			return
 		}
 		context.Next()

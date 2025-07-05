@@ -3,7 +3,6 @@ package actions
 import "madsecurity-defender/globals"
 
 func Perform(
-	proxy *globals.Proxy,
 	target *globals.Target,
 	targetValue any,
 	rule *globals.Rule,
@@ -18,15 +17,15 @@ func Perform(
 	case "deny":
 		forceReturn, result = Deny()
 	case "inspect":
-		forceReturn, result = Inspect(proxy, rule, defaultScore)
+		forceReturn, result = Inspect(rule, defaultScore)
 	case "request":
-		forceReturn, result = Request(proxy, targetValue, rule)
+		forceReturn, result = Request(targetValue, rule)
 	case "setScore":
-		forceReturn, result = SetScore(proxy, rule, score)
+		forceReturn, result = SetScore(rule, score)
 	case "setLevel":
-		forceReturn, result = SetLevel(proxy, rule, level)
+		forceReturn, result = SetLevel(rule, level)
 	case "report":
-		forceReturn, result = Report(proxy, targetValue, rule)
+		forceReturn, result = Report(targetValue, rule)
 	}
 	return forceReturn, result
 }

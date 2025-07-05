@@ -12,10 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Apply(context *gin.Context, security *globals.Security, storage *globals.Storage) {
+func Apply(context *gin.Context) {
 	var responseApiForm globals.Application
 	if err := context.ShouldBindBodyWithJSON(&responseApiForm); err != nil {
-		abort.BadRequest(context, security, err.Error())
+		abort.BadRequest(context, err.Error())
 		return
 	}
 	var wg sync.WaitGroup
@@ -34,7 +34,7 @@ func Apply(context *gin.Context, security *globals.Security, storage *globals.St
 		words     int64
 		errs      globals.ListError
 	)
-	if storage.Type == "redis" {
+	if globals.StorageConfigs.Type == "redis" {
 		wg.Add(5)
 		go inredis.Add(&wg, responseApiForm.Groups, "groups", &groups, &errs)
 		go inredis.Add(&wg, responseApiForm.Rules, "rules", &rules, &errs)
@@ -44,10 +44,10 @@ func Apply(context *gin.Context, security *globals.Security, storage *globals.St
 	}
 	wg.Wait()
 	responseApiForm = globals.Application{}
-	switch storage.Type {
+	switch globals.StorageConfigs.Type {
 	case "memory":
 		if len(errs) > 0 {
-			abort.InternalServerError(context, security, errors.Join(errs...).Error())
+			abort.InternalServerError(context, errors.Join(errs...).Error())
 			return
 		}
 		data = gin.H{

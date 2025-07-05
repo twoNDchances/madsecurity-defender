@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Sync(context *gin.Context, security *globals.Security) {
+func Sync(context *gin.Context) {
 	var (
 		rules   = make([]globals.Rule, 0)
 		targets = make([]globals.Target, 0)
