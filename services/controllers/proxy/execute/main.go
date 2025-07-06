@@ -8,6 +8,7 @@ import (
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/logistics"
 	"madsecurity-defender/services/controllers/proxy/execute/targets"
+	"net/http"
 	"slices"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +33,9 @@ func Request(context *gin.Context) bool {
 		}
 		rules := ruleGetted()
 		for _, rule := range rules {
+			if !slices.Contains(globals.ListUint8{0,1,2}, rule.Phase) {
+				continue
+			}
 			targetGetted := func() ([]globals.Target, any) {
 				var (
 					targetPath []globals.Target
@@ -52,9 +56,6 @@ func Request(context *gin.Context) bool {
 			if targetValue == nil {
 				msg := fmt.Sprintf("Target %d: unobtainable Target", rule.TargetID)
 				errors.WriteErrorTargetLog(msg)
-				continue
-			}
-			if !slices.Contains(globals.ListUint8{0,1,2}, rule.Phase) {
 				continue
 			}
 			if !comparators.Compare(targetValue, &rule) {
@@ -98,6 +99,6 @@ func Request(context *gin.Context) bool {
 	return defaultScore < score
 }
 
-func Response() {
-	//
+func Response(response *http.Response) bool {
+	return false
 }

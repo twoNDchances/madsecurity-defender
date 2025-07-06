@@ -5,37 +5,29 @@ import (
 	"madsecurity-defender/utils"
 )
 
-func WriteErrorTargetLog(msg string) {
-	if globals.ProxyConfigs.HistoryErrorEnable {
-		errorTreeCauses := globals.ListString{"Proxy", "Target"}
-		utils.WriteError(globals.ProxyConfigs.HistoryErrorPath, utils.NewErrorCauseName(errorTreeCauses...), msg)
+func writeError(msg string, errorTreeCauses ...string) {
+	if !globals.ProxyConfigs.HistoryErrorEnable {
+		return
 	}
+	utils.WriteError(globals.ProxyConfigs.HistoryErrorPath, utils.NewErrorCauseName(errorTreeCauses...), msg)
+}
+
+func WriteErrorTargetLog(msg string) {
+	writeError(msg, globals.ListString{"Proxy", "Target"}...)
 }
 
 func WriteErrorEngineLog(msg string) {
-	if globals.ProxyConfigs.HistoryErrorEnable {
-		errorTreeCauses := globals.ListString{"Proxy", "Target", "Engine"}
-		utils.WriteError(globals.ProxyConfigs.HistoryErrorPath, utils.NewErrorCauseName(errorTreeCauses...), msg)
-	}
+	writeError(msg, globals.ListString{"Proxy", "Target", "Engine"}...)
 }
 
 func WriteErrorComparatorLog(msg string) {
-	if globals.ProxyConfigs.HistoryErrorEnable {
-		errorTreeCauses := globals.ListString{"Proxy", "Rule", "Comparator"}
-		utils.WriteError(globals.ProxyConfigs.HistoryErrorPath, utils.NewErrorCauseName(errorTreeCauses...), msg)
-	}
+	writeError(msg, globals.ListString{"Proxy", "Rule", "Comparator"}...)
 }
 
 func WriteErrorActionLog(msg string) {
-	if globals.ProxyConfigs.HistoryErrorEnable {
-		errorTreeCauses := globals.ListString{"Proxy", "Rule", "Action"}
-		utils.WriteError(globals.ProxyConfigs.HistoryErrorPath, utils.NewErrorCauseName(errorTreeCauses...), msg)
-	}
+	writeError(msg, globals.ListString{"Proxy", "Rule", "Action"}...)
 }
 
 func WriteErrorLogisticLog(msg string) {
-	if globals.ProxyConfigs.HistoryErrorEnable {
-		errorTreeCauses := globals.ListString{"Proxy", "Rule", "Logistic"}
-		utils.WriteError(globals.ProxyConfigs.HistoryErrorPath, utils.NewErrorCauseName(errorTreeCauses...), msg)
-	}
+	writeError(msg, globals.ListString{"Proxy", "Rule", "Logistic"}...)
 }
