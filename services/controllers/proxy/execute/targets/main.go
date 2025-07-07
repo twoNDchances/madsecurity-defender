@@ -218,7 +218,7 @@ func ProcessTarget(context *gin.Context, targetId uint) ([]globals.Target, any) 
 	var targetPath []globals.Target
 	target, ok := globals.Targets[targetId]
 	if !ok {
-		return nil, nil
+		return targetPath, nil
 	}
 	var targetProcessed any
 	if target.Immutable {
@@ -228,7 +228,7 @@ func ProcessTarget(context *gin.Context, targetId uint) ([]globals.Target, any) 
 		switch target.Phase {
 		case 1:
 			switch target.Type {
-			case "header", "url.args":
+			case "getter", "header", "url.args":
 				targetPath = []globals.Target{target}
 				targetProcessed = ProcessUnimmutableTarget(context, &target)
 			case "target":

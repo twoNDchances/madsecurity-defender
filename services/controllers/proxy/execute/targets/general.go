@@ -64,10 +64,16 @@ func GetNumberTarget(context *gin.Context, target *globals.Target) float64 {
 
 func GetStringTarget(context *gin.Context, target *globals.Target) string {
 	var needed string
-	if target.Phase == 1 && target.Datatype == "string" {
-		values := getValueFromPhase1Type(context, target)
-		if value, ok := values[target.Name]; ok {
-			needed = value
+	if target.Datatype == "string" {
+		if target.Type == "getter" {
+			needed = context.GetString(target.Name)
+		} else {
+			if target.Phase == 1 {
+				values := getValueFromPhase1Type(context, target)
+				if value, ok := values[target.Name]; ok {
+					needed = value
+				}
+			}
 		}
 	}
 	return needed
