@@ -1,8 +1,13 @@
 package actions
 
-import "madsecurity-defender/globals"
+import (
+	"madsecurity-defender/globals"
+
+	"github.com/gin-gonic/gin"
+)
 
 func Perform(
+	context *gin.Context,
 	target *globals.Target,
 	targetValue any,
 	rule *globals.Rule,
@@ -26,6 +31,8 @@ func Perform(
 		forceReturn, result = SetLevel(rule, level)
 	case "report":
 		forceReturn, result = Report(targetValue, rule)
+	case "setVariable":
+		forceReturn, result = SetVariable(context, rule)
 	}
 	return forceReturn, result
 }

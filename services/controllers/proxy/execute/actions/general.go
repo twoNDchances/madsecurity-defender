@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Allow() (bool, bool) {
@@ -44,7 +46,10 @@ func Request(target any, rule *globals.Rule) (bool, bool) {
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
-	options := strings.Split(*rule.ActionConfiguration, ",")
+	options := strings.SplitN(*rule.ActionConfiguration, ",", 2)
+	if len(options) != 2 {
+		return true, false
+	}
 	methods := globals.ListString{"post", "put", "patch", "delete"}
 	if !slices.Contains(methods, options[0]) {
 		msg := fmt.Sprintf("Rule %d: Method not in 'get', 'put', 'patch', 'delete' for Request action", rule.ID)
@@ -133,5 +138,14 @@ func Report(target any, rule *globals.Rule) (bool, bool) {
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
+	return false, true
+}
+
+func SetVariable(context *gin.Context, rule *globals.Rule) (bool, bool) {
+	options := strings.SplitN(*rule.ActionConfiguration, ",", 2)
+	if len(options) != 2 {
+		return true, false
+	}
+	context.Set(options[0], options[1])
 	return false, true
 }

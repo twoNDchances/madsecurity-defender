@@ -66,6 +66,7 @@ func Request(context *gin.Context) bool {
 			}
 			target := globals.Targets[rule.TargetID]
 			forceReturn, result := actions.Perform(
+				context,
 				&target,
 				targetValue,
 				&rule,
