@@ -14,6 +14,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type actionCallback struct {
+	target      *globals.Target
+	targetPath  []globals.Target
+	targetValue any
+	rule        *globals.Rule
+}
+
 func Request(context *gin.Context) bool {
 	context.Set("violation_level", uint(globals.ProxyConfigs.ViolationLevel))
 	context.Set("current_score", 0)
@@ -40,13 +47,15 @@ func Request(context *gin.Context) bool {
 				return rules
 			}
 			rules := ruleGetted()
+			actionConditions := make([]bool, 0)
+			actionCallbacks := make([]actionCallback, 0)
 			for _, rule := range rules {
 				if !slices.Contains(globals.ListUint8{0, 1, 2}, rule.Phase) {
 					continue
 				}
 				targetGetted := func() ([]globals.Target, any) {
 					var (
-						targetPath []globals.Target
+						targetPath      []globals.Target
 						targetProcessed any
 					)
 					target, ok := globals.Targets[rule.TargetID]
@@ -66,29 +75,47 @@ func Request(context *gin.Context) bool {
 					errors.WriteErrorTargetLog(msg)
 					continue
 				}
-				if !comparators.Compare(targetValue, &rule) {
+				if result := comparators.Compare(targetValue, &rule); !result {
 					continue
+				} else {
+					actionConditions = append(actionConditions, result)
 				}
 				if rule.Action == nil {
 					continue
 				}
 				target := globals.Targets[rule.TargetID]
-				forceReturn, result := actions.Perform(context, &target, targetValue, &rule)
-				if !result {
-					logistic := logistics.NewLogistic(&rule)
-					err := logistic.Write(context, targetValue, &targetPath, &rule)
-					if err != nil {
-						msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-						errors.WriteErrorLogisticLog(msg)
+				actionCallbacks = append(actionCallbacks, actionCallback{
+					target:      &target,
+					targetPath:  targetPath,
+					targetValue: targetValue,
+					rule:        &rule,
+				})
+			}
+			if !slices.Contains(actionConditions, false) {
+				for _, actionCallback := range actionCallbacks {
+					forceReturn, result := actions.Perform(
+						context,
+						actionCallback.target,
+						actionCallback.targetValue,
+						actionCallback.rule,
+					)
+					if !result {
+						logistic := logistics.NewLogistic(actionCallback.rule)
+						err := logistic.Write(context, actionCallback.targetValue, &actionCallback.targetPath, actionCallback.rule)
+						if err != nil {
+							msg := fmt.Sprintf("Rule %d: %v", actionCallback.rule.ID, err)
+							errors.WriteErrorLogisticLog(msg)
+						}
 					}
-				}
-				if forceReturn {
-					return result
+					if forceReturn {
+						return result
+					}
 				}
 			}
 			groupProcessed = append(groupProcessed, group.ID)
 			if oldLevel != context.GetUint("violation_level") {
 				retry = true
+				break
 			}
 		}
 	}
