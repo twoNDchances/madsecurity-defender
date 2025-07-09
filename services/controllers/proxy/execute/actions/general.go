@@ -21,22 +21,24 @@ func Deny() (bool, bool) {
 	return true, false
 }
 
-func Inspect(rule *globals.Rule, score *int) (bool, bool) {
+func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool) {
 	if rule.Severity == nil {
 		msg := fmt.Sprintf("Rule %d: missing Severity for Inspect action", rule.ID)
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
+	var currentlyScore int
 	switch *rule.Severity {
 	case "notice":
-		*score = *score + globals.ProxyConfigs.Severity.NOTICE
+		currentlyScore = currentlyScore + globals.ProxyConfigs.Severity.NOTICE
 	case "warning":
-		*score = *score + globals.ProxyConfigs.Severity.WARNING
+		currentlyScore = currentlyScore + globals.ProxyConfigs.Severity.WARNING
 	case "error":
-		*score = *score + globals.ProxyConfigs.Severity.ERROR
+		currentlyScore = currentlyScore + globals.ProxyConfigs.Severity.ERROR
 	case "critical":
-		*score = *score + globals.ProxyConfigs.Severity.CRITICAL
+		currentlyScore = currentlyScore + globals.ProxyConfigs.Severity.CRITICAL
 	}
+	context.Set("current_score", currentlyScore)
 	return false, true
 }
 
@@ -84,7 +86,7 @@ func Request(target any, rule *globals.Rule) (bool, bool) {
 	return false, true
 }
 
-func SetScore(rule *globals.Rule, score *int) (bool, bool) {
+func SetScore(context *gin.Context, rule *globals.Rule) (bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Set Score action", rule.ID)
 		errors.WriteErrorActionLog(msg)
@@ -96,11 +98,11 @@ func SetScore(rule *globals.Rule, score *int) (bool, bool) {
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
-	*score = actionConfiguration
+	context.Set("violation_score", actionConfiguration)
 	return false, true
 }
 
-func SetLevel(rule *globals.Rule, level *int) (bool, bool) {
+func SetLevel(context *gin.Context, rule *globals.Rule) (bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Set Level action", rule.ID)
 		errors.WriteErrorActionLog(msg)
@@ -112,8 +114,7 @@ func SetLevel(rule *globals.Rule, level *int) (bool, bool) {
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
-	*level = actionConfiguration
-	//
+	context.Set("violation_level", uint(actionConfiguration))
 	return false, true
 }
 

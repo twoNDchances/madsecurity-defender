@@ -66,11 +66,11 @@ func Apply(context *gin.Context) {
 			"word":     words,
 		}
 	}
-	tmpGroups := make([]globals.Group, 0)
+	tmpListGroups := make([]globals.Group, 0)
 	for _, group := range globals.Groups {
-		tmpGroups = append(tmpGroups, group)
+		tmpListGroups = append(tmpListGroups, group)
 	}
-	globals.ListGroups = append(globals.ListGroups, tmpGroups...)
+	globals.ListGroups = tmpListGroups
 	globals.SortGroup(globals.ListGroups)
 	complete.OK(context, "applied", data)
 }

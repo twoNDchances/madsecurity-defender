@@ -102,7 +102,6 @@ func (p *Proxy) validateViolationScore() error {
 	if p.ViolationScore > 999999999 {
 		return utils.NewProxyError("Violation.Score", "999999999 is the highest limit")
 	}
-	ViolationScore = p.ViolationScore
 	return nil
 }
 
@@ -110,7 +109,6 @@ func (p *Proxy) validateViolationLevel() error {
 	if p.ViolationLevel < 1 || p.ViolationLevel > 999999999 {
 		return utils.NewProxyError("Violation.Level", "Must in range 1 -> 999999999")
 	}
-	ViolationLevel = p.ViolationLevel
 	return nil
 }
 

@@ -134,17 +134,17 @@ func (l *Logistic) Write(context any, output any, targets *[]globals.Target, rul
 	return nil
 }
 
-func NewLogistic(enable, time, userAgent, clientIp, method, path, output, target, rule bool) *Logistic {
+func NewLogistic(rule *globals.Rule) *Logistic {
 	logistic := Logistic{
-		Enable:    enable,
-		Time:      time,
-		UserAgent: userAgent,
-		ClientIP:  clientIp,
-		Method:    method,
-		Path:      path,
-		Output:    output,
-		Target:    target,
-		Rule:      rule,
+		Enable:    rule.Log,
+		Time:      rule.Time,
+		UserAgent: rule.UserAgent,
+		ClientIP:  rule.ClientIP,
+		Method:    rule.Method,
+		Path:      rule.Path,
+		Output:    rule.Output,
+		Target:    rule.Target,
+		Rule:      rule.Rule,
 	}
 	return &logistic
 }
