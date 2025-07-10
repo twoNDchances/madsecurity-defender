@@ -26,20 +26,41 @@ func getValueFromPhase1Type(context *gin.Context, target *globals.Target) global
 	return values
 }
 
+func getValueFromPhase2Type(context *gin.Context, target *globals.Target) globals.DictString {
+	raw := make(map[string][]string, 0)
+	if target.Type == "body" {
+
+	}
+	if target.Type == "file" {
+		
+	}
+	values := make(globals.DictString, 0)
+	for key, value := range raw {
+		values[strings.ToLower(key)] = strings.Join(value, ",")
+	}
+	return values
+}
+
 func GetArrayTarget(context *gin.Context, target *globals.Target) globals.ListString {
 	var needed globals.ListString
-	if target.Phase == 1 && target.Datatype == "array" && target.WordlistID != nil {
-		words := make(globals.ListString, 0)
-		for _, word := range globals.Words {
-			if word.WordlistID == *target.WordlistID {
-				words = append(words, word.Content)
+	if  target.Datatype == "array" && target.WordlistID != nil {
+		switch target.Phase {
+		case 1:
+			words := make(globals.ListString, 0)
+			for _, word := range globals.Words {
+				if word.WordlistID == *target.WordlistID {
+					words = append(words, word.Content)
+				}
 			}
-		}
-		values := getValueFromPhase1Type(context, target)
-		for _, word := range words {
-			if value, ok := values[word]; ok {
-				needed = append(needed, value)
+			values := getValueFromPhase1Type(context, target)
+			for _, word := range words {
+				if value, ok := values[word]; ok {
+					needed = append(needed, value)
+				}
 			}
+		case 2:
+		case 3:
+		case 4:
 		}
 	}
 	return needed
@@ -47,16 +68,22 @@ func GetArrayTarget(context *gin.Context, target *globals.Target) globals.ListSt
 
 func GetNumberTarget(context *gin.Context, target *globals.Target) float64 {
 	var needed float64
-	if target.Phase == 1 && target.Datatype == "number" {
-		values := getValueFromPhase1Type(context, target)
-		if value, ok := values[target.Name]; ok {
-			number, err := utils.ToFloat64(value)
-			if err != nil {
-				msg := fmt.Sprintf("Target %d: %v", target.ID, err)
-				errors.WriteErrorTargetLog(msg)
-			} else {
-				needed = number
+	if target.Datatype == "number" {
+		switch target.Phase {
+		case 1:
+			values := getValueFromPhase1Type(context, target)
+			if value, ok := values[target.Name]; ok {
+				number, err := utils.ToFloat64(value)
+				if err != nil {
+					msg := fmt.Sprintf("Target %d: %v", target.ID, err)
+					errors.WriteErrorTargetLog(msg)
+				} else {
+					needed = number
+				}
 			}
+		case 2:
+		case 3:
+		case 4:
 		}
 	}
 	return needed
@@ -68,11 +95,15 @@ func GetStringTarget(context *gin.Context, target *globals.Target) string {
 		if target.Type == "getter" {
 			needed = context.GetString(target.Name)
 		} else {
-			if target.Phase == 1 {
+			switch target.Phase {
+			case 1:
 				values := getValueFromPhase1Type(context, target)
 				if value, ok := values[target.Name]; ok {
 					needed = value
 				}
+			case 2:
+			case 3:
+			case 4:
 			}
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase0"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
+	"madsecurity-defender/services/controllers/proxy/execute/targets/phase2"
 	"madsecurity-defender/utils"
 	"strconv"
 
@@ -48,6 +49,19 @@ func ProcessImmutableTarget(context *gin.Context, target *globals.Target) any {
 		}
 	case 2:
 		switch target.Alias {
+		case "body-keys":
+			targetGetted = phase2.BodyKeys(context, target)
+		case "file-keys":
+		case "body-values":
+			targetGetted = phase2.BodyValues(context, target)
+		case "file-values":
+		case "file-names":
+		case "file-extensions":
+		case "body-size":
+		case "file-size":
+		case "body-length":
+		case "file-length":
+		case "body-full":
 		}
 	case 3:
 		switch target.Alias {
