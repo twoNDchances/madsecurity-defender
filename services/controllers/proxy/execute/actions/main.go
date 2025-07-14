@@ -6,25 +6,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Perform(context *gin.Context, group *globals.Group, targetPath []globals.Target, targetValue any, rule *globals.Rule) (bool, bool) {
-	var forceReturn, result bool
+func Perform(context *gin.Context, group *globals.Group, targetPath []globals.Target, targetValue any, rule *globals.Rule) (bool, bool, bool) {
+	var forceReturn, result, audit bool
 	switch *rule.Action {
 	case "allow":
-		forceReturn, result = Allow()
+		forceReturn, result, audit = Allow()
 	case "deny":
-		forceReturn, result = Deny()
+		forceReturn, result, audit = Deny()
 	case "inspect":
-		forceReturn, result = Inspect(context, rule)
+		forceReturn, result, audit = Inspect(context, rule)
 	case "request":
-		forceReturn, result = Request(context, targetPath, targetValue, rule)
+		forceReturn, result, audit = Request(context, targetPath, targetValue, rule)
 	case "setScore":
-		forceReturn, result = SetScore(context, rule)
+		forceReturn, result, audit = SetScore(context, rule)
 	case "setLevel":
-		forceReturn, result = SetLevel(context, rule)
+		forceReturn, result, audit = SetLevel(context, rule)
 	case "report":
-		forceReturn, result = Report(context, group, targetPath, targetValue, rule)
+		forceReturn, result, audit = Report(context, group, targetPath, targetValue, rule)
 	case "setVariable":
-		forceReturn, result = SetVariable(context, rule)
+		forceReturn, result, audit = SetVariable(context, rule)
 	}
-	return forceReturn, result
+	return forceReturn, result, audit
 }

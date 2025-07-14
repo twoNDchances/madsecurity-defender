@@ -91,17 +91,21 @@ func Request(context *gin.Context) bool {
 			}
 			if !slices.Contains(actionConditions, false) {
 				for _, actionCallback := range actionCallbacks {
-					forceReturn, result := actions.Perform(
+					forceReturn, result, audit := actions.Perform(
 						context,
 						&group,
 						actionCallback.targetPath,
 						actionCallback.targetValue,
 						actionCallback.rule,
 					)
-					if !result {
+					if audit {
 						logistic := logistics.NewLogistic(actionCallback.rule)
-						err := logistic.Write(context, actionCallback.targetValue, &actionCallback.targetPath, actionCallback.rule)
-						if err != nil {
+						if err := logistic.Write(
+							context,
+							actionCallback.targetValue,
+							&actionCallback.targetPath,
+							actionCallback.rule,
+						); err != nil {
 							msg := fmt.Sprintf("Rule %d: %v", actionCallback.rule.ID, err)
 							errors.WriteErrorLogisticLog(msg)
 						}

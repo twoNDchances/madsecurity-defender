@@ -14,19 +14,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Allow() (bool, bool) {
-	return true, true
+func Allow() (bool, bool, bool) {
+	return true, true, true
 }
 
-func Deny() (bool, bool) {
-	return true, false
+func Deny() (bool, bool, bool) {
+	return true, false, true
 }
 
-func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool) {
+func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	if rule.Severity == nil {
 		msg := fmt.Sprintf("Rule %d: missing Severity for Inspect action", rule.ID)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	var currentlyScore int
 	switch *rule.Severity {
@@ -40,29 +40,29 @@ func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool) {
 		currentlyScore = currentlyScore + globals.ProxyConfigs.Severity.CRITICAL
 	}
 	context.Set("current_score", currentlyScore)
-	return false, true
+	return false, true, true
 }
 
-func Request(context *gin.Context, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool) {
+func Request(context *gin.Context, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Request action", rule.ID)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	options := strings.SplitN(*rule.ActionConfiguration, ",", 2)
 	if len(options) != 2 {
-		return true, false
+		return true, false, false
 	}
 	methods := globals.ListString{"post", "put", "patch", "delete"}
 	if !slices.Contains(methods, options[0]) {
 		msg := fmt.Sprintf("Rule %d: Method not in 'get', 'put', 'patch', 'delete' for Request action", rule.ID)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	if _, err := url.Parse(options[1]); err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	var targetValues []globals.DictAny
 	for _, target := range targetPath {
@@ -101,7 +101,7 @@ func Request(context *gin.Context, targetPath []globals.Target, target any, rule
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	go func() {
 		response, err := request.Send()
@@ -113,42 +113,42 @@ func Request(context *gin.Context, targetPath []globals.Target, target any, rule
 			errors.WriteErrorActionLog(msg)
 		}
 	}()
-	return false, true
+	return false, true, true
 }
 
-func SetScore(context *gin.Context, rule *globals.Rule) (bool, bool) {
+func SetScore(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Set Score action", rule.ID)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	actionConfiguration, err := strconv.Atoi(*rule.ActionConfiguration)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	context.Set("violation_score", actionConfiguration)
-	return false, true
+	return false, true, true
 }
 
-func SetLevel(context *gin.Context, rule *globals.Rule) (bool, bool) {
+func SetLevel(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Set Level action", rule.ID)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	actionConfiguration, err := strconv.Atoi(*rule.ActionConfiguration)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	context.Set("violation_level", uint(actionConfiguration))
-	return false, true
+	return false, true, true
 }
 
-func Report(context *gin.Context, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool) {
+func Report(context *gin.Context, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
 	var targetIds globals.ListUint
 	for _, target := range targetPath {
 		targetIds = append(targetIds, target.ID)
@@ -175,7 +175,7 @@ func Report(context *gin.Context, group *globals.Group, targetPath []globals.Tar
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)
-		return true, false
+		return true, false, false
 	}
 	go func() {
 		response, err := request.Send()
@@ -187,14 +187,14 @@ func Report(context *gin.Context, group *globals.Group, targetPath []globals.Tar
 			errors.WriteErrorActionLog(msg)
 		}
 	}()
-	return false, true
+	return false, true, true
 }
 
-func SetVariable(context *gin.Context, rule *globals.Rule) (bool, bool) {
+func SetVariable(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	options := strings.SplitN(*rule.ActionConfiguration, ",", 2)
 	if len(options) != 2 {
-		return true, false
+		return true, false, false
 	}
 	context.Set(options[0], options[1])
-	return false, true
+	return false, true, true
 }

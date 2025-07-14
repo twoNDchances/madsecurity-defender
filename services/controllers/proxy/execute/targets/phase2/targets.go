@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 
@@ -82,7 +81,6 @@ func FileNameSize(context *gin.Context, target *globals.Target) float64 {
 	if target.Phase == 2 && target.Alias == "file-name-size" && target.Name == "name-size" && target.Immutable && target.TargetID == nil {
 		_, _, _, names, _, _ := GetFileData(context, target.ID)
 		nameSize = float64(len(names))
-		log.Println(nameSize)
 	}
 	return nameSize
 }
