@@ -6,3 +6,10 @@ func ReplaceIfWhiteSpace(value, new string) string {
 	}
 	return value
 }
+
+func FallbackWhenEmpty(value, new *string) *string {
+	if len(*value) != 0 {
+		return value
+	}
+	return new
+}

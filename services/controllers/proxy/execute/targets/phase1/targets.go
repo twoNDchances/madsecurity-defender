@@ -14,7 +14,7 @@ import (
 func HeaderKeys(context *gin.Context, target *globals.Target) globals.ListString {
 	keys := make(globals.ListString, 0)
 	if target.Phase == 1 && target.Alias == "header-keys" && target.Name == "keys" && target.Immutable && target.TargetID == nil {
-		headers := context.Request.Header
+		headers := GetHeaderData(context)
 		for key := range headers {
 			keys = append(keys, strings.ToLower(key))
 		}
@@ -25,7 +25,7 @@ func HeaderKeys(context *gin.Context, target *globals.Target) globals.ListString
 func HeaderValues(context *gin.Context, target *globals.Target) globals.ListString {
 	values := make(globals.ListString, 0)
 	if target.Phase == 1 && target.Alias == "header-values" && target.Name == "value" && target.Immutable && target.TargetID == nil {
-		headers := context.Request.Header
+		headers := GetHeaderData(context)
 		for _, value := range headers {
 			values = append(values, value...)
 		}
@@ -36,7 +36,7 @@ func HeaderValues(context *gin.Context, target *globals.Target) globals.ListStri
 func UrlArgsKeys(context *gin.Context, target *globals.Target) globals.ListString {
 	keys := make(globals.ListString, 0)
 	if target.Phase == 1 && target.Alias == "url-args-keys" && target.Name == "keys" && target.Immutable && target.TargetID == nil {
-		queries := context.Request.URL.Query()
+		queries := GetUrlArgsData(context)
 		for key := range queries {
 			keys = append(keys, strings.ToLower(key))
 		}
@@ -47,7 +47,7 @@ func UrlArgsKeys(context *gin.Context, target *globals.Target) globals.ListStrin
 func UrlArgsValues(context *gin.Context, target *globals.Target) globals.ListString {
 	values := make(globals.ListString, 0)
 	if target.Phase == 1 && target.Alias == "url-args-values" && target.Name == "values" && target.Immutable && target.TargetID == nil {
-		queries := context.Request.URL.Query()
+		queries := GetUrlArgsData(context)
 		for _, value := range queries {
 			values = append(values, value...)
 		}

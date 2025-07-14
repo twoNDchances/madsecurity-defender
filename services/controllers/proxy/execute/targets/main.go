@@ -52,16 +52,27 @@ func ProcessImmutableTarget(context *gin.Context, target *globals.Target) any {
 		case "body-keys":
 			targetGetted = phase2.BodyKeys(context, target)
 		case "file-keys":
+			targetGetted = phase2.FileKeys(context, target)
 		case "body-values":
 			targetGetted = phase2.BodyValues(context, target)
 		case "file-values":
+			targetGetted = phase2.FileValues(context, target)
 		case "file-names":
+			targetGetted = phase2.FileNames(context, target)
 		case "file-extensions":
+			targetGetted = phase2.FileExtensions(context, target)
 		case "body-size":
+			targetGetted = phase2.BodySize(context, target)
 		case "file-size":
+			targetGetted = phase2.FileSize(context, target)
+		case "file-name-size":
+			targetGetted = phase2.FileNameSize(context, target)
 		case "body-length":
+			targetGetted = phase2.BodyLength(context, target)
 		case "file-length":
+			targetGetted = phase2.FileLength(context, target)
 		case "body-full":
+			targetGetted = phase2.FullBody(context, target)
 		}
 	case 3:
 		switch target.Alias {
@@ -239,24 +250,12 @@ func ProcessTarget(context *gin.Context, targetId uint) ([]globals.Target, any) 
 		targetPath = []globals.Target{target}
 		targetProcessed = ProcessImmutableTarget(context, &target)
 	} else {
-		switch target.Phase {
-		case 1:
-			switch target.Type {
-			case "getter", "header", "url.args":
-				targetPath = []globals.Target{target}
-				targetProcessed = ProcessUnimmutableTarget(context, &target)
-			case "target":
-				targetPath, targetProcessed = ProcessRefererTarget(context, targetId)
-			}
-		case 2:
-			switch target.Type {
-			}
-		case 3:
-			switch target.Type {
-			}
-		case 4:
-			switch target.Type {
-			}
+		switch target.Type {
+		case "getter", "header", "url.args", "body", "file":
+			targetPath = []globals.Target{target}
+			targetProcessed = ProcessUnimmutableTarget(context, &target)
+		case "target":
+			targetPath, targetProcessed = ProcessRefererTarget(context, targetId)
 		}
 	}
 	return targetPath, targetProcessed

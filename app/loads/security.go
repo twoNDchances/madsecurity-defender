@@ -18,14 +18,14 @@ func PrepareSecurity() (*globals.Security, bool) {
 		return nil, false
 	}
 	security := globals.Security{
-		Enable:     enable,
-		Username:   globals.SecurityVars["username"],
-		Password:   globals.SecurityVars["password"],
-		ManagerIp:  globals.SecurityVars["manager.ip"],
-		MaskEnable: maskEnable,
-		MaskType:   globals.SecurityVars["mask.type"],
-		MaskHtml:   globals.SecurityVars["mask.html"],
-		MaskJson:   globals.SecurityVars["mask.json"],
+		ManagerHost: globals.SecurityVars["manager.host"],
+		Enable:      enable,
+		Username:    globals.SecurityVars["username"],
+		Password:    globals.SecurityVars["password"],
+		MaskEnable:  maskEnable,
+		MaskType:    globals.SecurityVars["mask.type"],
+		MaskHtml:    globals.SecurityVars["mask.html"],
+		MaskJson:    globals.SecurityVars["mask.json"],
 	}
 	if errors := security.Validate(); errors != nil {
 		for _, err := range errors {

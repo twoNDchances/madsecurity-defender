@@ -9,21 +9,21 @@ import (
 )
 
 type Security struct {
-	Enable     bool
-	Username   string
-	Password   string
-	ManagerIp  string
-	MaskEnable bool
-	MaskType   string
-	MaskHtml   string
-	MaskJson   string
+	ManagerHost string
+	Enable      bool
+	Username    string
+	Password    string
+	MaskEnable  bool
+	MaskType    string
+	MaskHtml    string
+	MaskJson    string
 }
 
 func (s *Security) Validate() ListError {
 	if errors := Validate(
 		s.validateUsername(),
 		s.validatePassword(),
-		s.validateManagerIp(),
+		s.validateManagerHost(),
 		s.validateMaskType(),
 		s.validateMaskHtml(),
 		s.validateMaskJson(),
@@ -33,23 +33,23 @@ func (s *Security) Validate() ListError {
 	return nil
 }
 
+func (s *Security) validateManagerHost() error {
+	if net.ParseIP(s.ManagerHost) == nil {
+		return utils.NewServerError("Security.Manager.IP", "Invalid IP")
+	}
+	return nil
+}
+
 func (s *Security) validateUsername() error {
-	if len(s.Username) == 0 {
+	if s.Enable && len(s.Username) == 0 {
 		return utils.NewServerError("Security.Username", "Username is required when security enabled")
 	}
 	return nil
 }
 
 func (s *Security) validatePassword() error {
-	if len(s.Password) < 8 {
+	if s.Enable && len(s.Password) < 8 {
 		return utils.NewServerError("Security.Password", "Password length must be greater than or equal to 8 when security is enabled")
-	}
-	return nil
-}
-
-func (s *Security) validateManagerIp() error {
-	if net.ParseIP(s.ManagerIp) == nil {
-		return utils.NewServerError("Security.Manager.IP", "Invalid IP")
 	}
 	return nil
 }

@@ -11,6 +11,10 @@ func Compare(target any, rule *globals.Rule) bool {
 			result = Similar(t, rule)
 		case "@contains":
 			result = Contains(t, rule)
+		case "@match":
+			result = Match(t, rule)
+		case "@search":
+			result = Search(t, rule)
 		}
 	case float64:
 		switch rule.Comparator {

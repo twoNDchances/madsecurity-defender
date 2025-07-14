@@ -51,6 +51,69 @@ func Contains(targets globals.ListString, rule *globals.Rule) bool {
 	return result
 }
 
+func Match(targets globals.ListString, rule *globals.Rule) bool {
+	var result bool
+	if rule.Value == nil {
+		msg := fmt.Sprintf("Rule %d: missing Value for Match comparator", rule.ID)
+		errors.WriteErrorComparatorLog(msg)
+		return result
+	}
+	for _, target := range targets {
+		matched, err := regexp.MatchString(*rule.Value, target)
+		if err != nil {
+			msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
+			errors.WriteErrorComparatorLog(msg)
+			return result
+		}
+		if rule.Inverse {
+			result = !matched
+		} else {
+			result = matched
+		}
+		if result {
+			break
+		}
+	}
+	return result
+}
+
+func Search(targets globals.ListString, rule *globals.Rule) bool {
+	var result bool
+	if rule.WordlistID == nil {
+		msg := fmt.Sprintf("Rule %d: missing Wordlist ID for Search comparator", rule.ID)
+		errors.WriteErrorComparatorLog(msg)
+		return result
+	}
+	words := make(globals.ListString, 0)
+	for _, word := range globals.Words {
+		if word.WordlistID == *rule.WordlistID {
+			words = append(words, word.Content)
+		}
+	}
+	for _, target := range targets {
+		for _, word := range words {
+			matched, err := regexp.MatchString(word, target)
+			if err != nil {
+				msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
+				errors.WriteErrorComparatorLog(msg)
+				return result
+			}
+			if rule.Inverse {
+				result = !matched
+			} else {
+				result = matched
+			}
+			if result {
+				break
+			}
+		}
+		if result {
+			break
+		}
+	}
+	return result
+}
+
 func Equal(target float64, rule *globals.Rule) bool {
 	var result bool
 	if rule.Value == nil {

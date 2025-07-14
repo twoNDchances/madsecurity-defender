@@ -15,7 +15,6 @@ import (
 )
 
 type actionCallback struct {
-	target      *globals.Target
 	targetPath  []globals.Target
 	targetValue any
 	rule        *globals.Rule
@@ -76,6 +75,7 @@ func Request(context *gin.Context) bool {
 					continue
 				}
 				if result := comparators.Compare(targetValue, &rule); !result {
+					actionConditions = append(actionConditions, result)
 					continue
 				} else {
 					actionConditions = append(actionConditions, result)
@@ -83,9 +83,7 @@ func Request(context *gin.Context) bool {
 				if rule.Action == nil {
 					continue
 				}
-				target := globals.Targets[rule.TargetID]
 				actionCallbacks = append(actionCallbacks, actionCallback{
-					target:      &target,
 					targetPath:  targetPath,
 					targetValue: targetValue,
 					rule:        &rule,
@@ -95,7 +93,8 @@ func Request(context *gin.Context) bool {
 				for _, actionCallback := range actionCallbacks {
 					forceReturn, result := actions.Perform(
 						context,
-						actionCallback.target,
+						&group,
+						actionCallback.targetPath,
 						actionCallback.targetValue,
 						actionCallback.rule,
 					)

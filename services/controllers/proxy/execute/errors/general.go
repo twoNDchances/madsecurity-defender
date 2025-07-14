@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/utils"
 )
@@ -9,7 +10,7 @@ func writeError(msg string, errorTreeCauses ...string) {
 	if !globals.ProxyConfigs.HistoryErrorEnable {
 		return
 	}
-	utils.WriteError(globals.ProxyConfigs.HistoryErrorPath, utils.NewErrorCauseName(errorTreeCauses...), msg)
+	utils.WriteError(fmt.Sprintf("%s.log", globals.ProxyConfigs.HistoryErrorPath), utils.NewErrorCauseName(errorTreeCauses...), msg)
 }
 
 func WriteErrorTargetLog(msg string) {

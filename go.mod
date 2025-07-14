@@ -5,6 +5,7 @@ go 1.23.4
 require (
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/gin-gonic/gin v1.10.1
+	github.com/h2non/filetype v1.1.3
 	github.com/redis/go-redis/v9 v9.11.0
 )
 

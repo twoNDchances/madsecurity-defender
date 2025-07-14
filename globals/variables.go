@@ -31,14 +31,14 @@ var (
 	}
 
 	SecurityVars = DictString{
-		"enable":      os.Getenv("DEFENDER_SERVER_SECURITY_ENABLE"),
-		"username":    os.Getenv("DEFENDER_SERVER_SECURITY_USERNAME"),
-		"password":    os.Getenv("DEFENDER_SERVER_SECURITY_PASSWORD"),
-		"manager.ip":  os.Getenv("DEFENDER_SERVER_SECURITY_MANAGER_IP"),
-		"mask.enable": os.Getenv("DEFENDER_SERVER_SECURITY_MASK_ENABLE"),
-		"mask.type":   os.Getenv("DEFENDER_SERVER_SECURITY_MASK_TYPE"),
-		"mask.html":   os.Getenv("DEFENDER_SERVER_SECURITY_MASK_HTML"),
-		"mask.json":   os.Getenv("DEFENDER_SERVER_SECURITY_MASK_JSON"),
+		"manager.host": os.Getenv("DEFENDER_SERVER_SECURITY_MANAGER_HOST"),
+		"enable":       os.Getenv("DEFENDER_SERVER_SECURITY_ENABLE"),
+		"username":     os.Getenv("DEFENDER_SERVER_SECURITY_USERNAME"),
+		"password":     os.Getenv("DEFENDER_SERVER_SECURITY_PASSWORD"),
+		"mask.enable":  os.Getenv("DEFENDER_SERVER_SECURITY_MASK_ENABLE"),
+		"mask.type":    os.Getenv("DEFENDER_SERVER_SECURITY_MASK_TYPE"),
+		"mask.html":    os.Getenv("DEFENDER_SERVER_SECURITY_MASK_HTML"),
+		"mask.json":    os.Getenv("DEFENDER_SERVER_SECURITY_MASK_JSON"),
 	}
 
 	LogVars = DictString{

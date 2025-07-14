@@ -1,8 +1,12 @@
 package phase2
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"log"
 	"madsecurity-defender/globals"
-	"strings"
+	"madsecurity-defender/services/controllers/proxy/execute/errors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,20 +14,15 @@ import (
 func BodyKeys(context *gin.Context, target *globals.Target) globals.ListString {
 	keys := make(globals.ListString, 0)
 	if target.Phase == 2 && target.Alias == "body-keys" && target.Name == "keys" && target.Immutable && target.TargetID == nil {
-		if len(context.ContentType()) > 0 {
-			contentType := strings.ToLower(context.ContentType())
-			switch contentType {
-			case "application/json":
-				jsonKeys, _ := extractApplicationJson(context, target.ID)
-				keys = append(keys, jsonKeys...)
-			case "application/x-www-form-urlencoded":
-				urlKeys, _ := extractApplicationXWwwFormUrlEncoded(context, target.ID)
-				keys = append(keys, urlKeys...)
-			case "multipart/form-data":
-				formKeys, _ := extractMultipartBodyFormData(context, target.ID)
-				keys = append(keys, formKeys...)
-			}
-		}
+		keys, _, _ = GetBodyData(context, target.ID)
+	}
+	return keys
+}
+
+func FileKeys(context *gin.Context, target *globals.Target) globals.ListString {
+	keys := make(globals.ListString, 0)
+	if target.Phase == 2 && target.Alias == "file-keys" && target.Name == "keys" && target.Immutable && target.TargetID == nil {
+		keys, _, _, _, _, _ = GetFileData(context, target.ID)
 	}
 	return keys
 }
@@ -31,22 +30,97 @@ func BodyKeys(context *gin.Context, target *globals.Target) globals.ListString {
 func BodyValues(context *gin.Context, target *globals.Target) globals.ListString {
 	values := make(globals.ListString, 0)
 	if target.Phase == 2 && target.Alias == "body-values" && target.Name == "values" && target.Immutable && target.TargetID == nil {
-		if len(context.ContentType()) > 0 {
-			contentType := strings.ToLower(context.ContentType())
-			switch contentType {
-			case "application/json":
-				_, jsonValues := extractApplicationJson(context, target.ID)
-				values = append(values, jsonValues...)
-			case "application/x-www-form-urlencoded":
-				_, urlValues := extractApplicationXWwwFormUrlEncoded(context, target.ID)
-				values = append(values, urlValues...)
-			case "multipart/form-data":
-				_, formValues := extractMultipartBodyFormData(context, target.ID)
-				values = append(values, formValues...)
-			}
-		}
+		_, values, _ = GetBodyData(context, target.ID)
 	}
 	return values
 }
 
+func FileValues(context *gin.Context, target *globals.Target) globals.ListString {
+	values := make(globals.ListString, 0)
+	if target.Phase == 2 && target.Alias == "file-values" && target.Name == "values" && target.Immutable && target.TargetID == nil {
+		_, values, _, _, _, _ = GetFileData(context, target.ID)
+	}
+	return values
+}
 
+func FileNames(context *gin.Context, target *globals.Target) globals.ListString {
+	names := make(globals.ListString, 0)
+	if target.Phase == 2 && target.Alias == "file-names" && target.Name == "names" && target.Immutable && target.TargetID == nil {
+		_, _, _, names, _, _ = GetFileData(context, target.ID)
+	}
+	return names
+}
+
+func FileExtensions(context *gin.Context, target *globals.Target) globals.ListString {
+	extensions := make(globals.ListString, 0)
+	if target.Phase == 2 && target.Alias == "file-extensions" && target.Name == "extensions" && target.Immutable && target.TargetID == nil {
+		_, _, _, _, extensions, _ = GetFileData(context, target.ID)
+	}
+	return extensions
+}
+
+func BodySize(context *gin.Context, target *globals.Target) float64 {
+	var size float64
+	if target.Phase == 2 && target.Alias == "body-size" && target.Name == "size" && target.Immutable && target.TargetID == nil {
+		keys, _, _ := GetBodyData(context, target.ID)
+		size = float64(len(keys))
+	}
+	return size
+}
+
+func FileSize(context *gin.Context, target *globals.Target) float64 {
+	var size float64
+	if target.Phase == 2 && target.Alias == "file-size" && target.Name == "size" && target.Immutable && target.TargetID == nil {
+		keys, _, _, _, _, _ := GetFileData(context, target.ID)
+		size = float64(len(keys))
+	}
+	return size
+}
+
+func FileNameSize(context *gin.Context, target *globals.Target) float64 {
+	var nameSize float64
+	if target.Phase == 2 && target.Alias == "file-name-size" && target.Name == "name-size" && target.Immutable && target.TargetID == nil {
+		_, _, _, names, _, _ := GetFileData(context, target.ID)
+		nameSize = float64(len(names))
+		log.Println(nameSize)
+	}
+	return nameSize
+}
+
+func BodyLength(context *gin.Context, target *globals.Target) float64 {
+	var length float64
+	if target.Phase == 2 && target.Alias == "body-length" && target.Name == "length" && target.Immutable && target.TargetID == nil {
+		_, _, maps := GetBodyData(context, target.ID)
+		for key, value := range maps {
+			mapLength := float64(len(key) + len(value))
+			length += mapLength
+		}
+	}
+	return length
+}
+
+func FileLength(context *gin.Context, target *globals.Target) float64 {
+	var length float64
+	if target.Phase == 2 && target.Alias == "file-length" && target.Name == "length" && target.Immutable && target.TargetID == nil {
+		_, _, _, _, _, mapLength := GetFileData(context, target.ID)
+		for _, fileLength := range mapLength {
+			length += fileLength
+		}
+	}
+	return length
+}
+
+func FullBody(context *gin.Context, target *globals.Target) string {
+	var raw string
+	if target.Phase == 2 && target.Alias == "full-body" && target.Name == "raw" && target.Immutable && target.TargetID == nil {
+		bodyBytes, err := io.ReadAll(context.Request.Body)
+		if err != nil {
+			msg := fmt.Sprintf("Target %d: %v", target.ID, err)
+			errors.WriteErrorTargetLog(msg)
+		} else {
+			context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			raw = string(bodyBytes)
+		}
+	}
+	return raw
+}

@@ -17,8 +17,8 @@ type Banner struct {
 }
 
 func (b *Banner) Print() {
-	figure.NewColorFigure(b.ProjectName, "larry3d", "blue", true).Print()
 	figure.NewColorFigure(b.AppName, "larry3d", "purple", true).Print()
+	figure.NewColorFigure(b.ProjectName, "slant", "blue", true).Print()
 	fmt.Printf(utils.NewColor(`
 Version: %s
 Go     : %s

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -74,8 +75,14 @@ func (h *httpRequest) Send() (*http.Response, error) {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
+	req.Header.Set("User-Agent", "M&DSecurity/Defender")
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
 	return client.Do(req)
 }
 

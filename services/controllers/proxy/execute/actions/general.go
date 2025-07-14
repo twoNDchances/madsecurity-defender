@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,7 +43,7 @@ func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool) {
 	return false, true
 }
 
-func Request(target any, rule *globals.Rule) (bool, bool) {
+func Request(context *gin.Context, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Request action", rule.ID)
 		errors.WriteErrorActionLog(msg)
@@ -63,8 +64,38 @@ func Request(target any, rule *globals.Rule) (bool, bool) {
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
+	var targetValues []globals.DictAny
+	for _, target := range targetPath {
+		targetValues = append(targetValues, globals.DictAny{
+			"name": target.Name,
+			"alias": target.Alias,
+			"type": target.Type,
+			"datatype": target.Datatype,
+			"engine": target.Engine,
+			"engine_configuration": target.EngineConfiguration,
+			"final_datatype": target.FinalDatatype,
+			"wordlist_id": target.WordlistID,
+		})
+	}
 	body := globals.DictAny{
-		// ""
+		"time": time.Now().Format(utils.TimeStampLayout),
+		"output": target,
+		"user_agent": context.Request.UserAgent(),
+		"client_ip": context.RemoteIP(),
+		"method": context.Request.Method,
+		"path": context.Request.URL.Path,
+		"target": targetValues,
+		"rule": globals.DictAny{
+			"name": rule.Name,
+			"alias": rule.Alias,
+			"comparator": rule.Comparator,
+			"inverse": rule.Inverse,
+			"value": rule.Value,
+			"wordlist_id": rule.WordlistID,
+			"action": rule.Action,
+			"action_configuration": rule.ActionConfiguration,
+			"severity": rule.Severity,
+		},
 	}
 	request, err := utils.NewHttp(options[0], options[1], body)
 	if err != nil {
@@ -72,17 +103,16 @@ func Request(target any, rule *globals.Rule) (bool, bool) {
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
-	response, err := request.Send()
-	if err != nil {
-		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorActionLog(msg)
-		return true, false
-	}
-	if response.StatusCode != 200 {
-		msg := fmt.Sprintf("Rule %d: Status code %d", rule.ID, response.StatusCode)
-		errors.WriteErrorActionLog(msg)
-		return true, false
-	}
+	go func() {
+		response, err := request.Send()
+		if err != nil {
+			msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
+			errors.WriteErrorActionLog(msg)
+		} else if response.StatusCode != 200 {
+			msg := fmt.Sprintf("Rule %d: Status code %d", rule.ID, response.StatusCode)
+			errors.WriteErrorActionLog(msg)
+		}
+	}()
 	return false, true
 }
 
@@ -118,27 +148,45 @@ func SetLevel(context *gin.Context, rule *globals.Rule) (bool, bool) {
 	return false, true
 }
 
-func Report(target any, rule *globals.Rule) (bool, bool) {
-	body := map[string]any{
-		//
+func Report(context *gin.Context, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool) {
+	var targetIds globals.ListUint
+	for _, target := range targetPath {
+		targetIds = append(targetIds, target.ID)
 	}
-	request, err := utils.NewHttp("post", "", body)
+	body := globals.DictAny{
+		"auth": globals.DictAny{
+			"id": group.DefenderID,
+			"username": utils.FallbackWhenEmpty(&globals.SecurityConfigs.Username, nil),
+			"password": utils.FallbackWhenEmpty(&globals.SecurityConfigs.Password, nil),
+		},
+		"data": globals.DictAny{
+			"time": time.Now().Format(utils.TimeStampLayout),
+			"output": target,
+			"user_agent": context.Request.UserAgent(),
+			"client_ip": context.RemoteIP(),
+			"method": context.Request.Method,
+			"path": context.Request.URL.Path,
+			"target_ids": targetIds,
+			"rule_id": rule.ID,
+		},
+	}
+	managerAddress := fmt.Sprintf("https://%s/api/report/create", globals.SecurityConfigs.ManagerHost)
+	request, err := utils.NewHttp("post", managerAddress, body)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)
 		return true, false
 	}
-	response, err := request.Send()
-	if err != nil {
-		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
-		errors.WriteErrorActionLog(msg)
-		return true, false
-	}
-	if response.StatusCode != 200 {
-		msg := fmt.Sprintf("Rule %d: Status code %d", rule.ID, response.StatusCode)
-		errors.WriteErrorActionLog(msg)
-		return true, false
-	}
+	go func() {
+		response, err := request.Send()
+		if err != nil {
+			msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
+			errors.WriteErrorActionLog(msg)
+		} else if response.StatusCode != 200 {
+			msg := fmt.Sprintf("Rule %d: Status code %d", rule.ID, response.StatusCode)
+			errors.WriteErrorActionLog(msg)
+		}
+	}()
 	return false, true
 }
 
