@@ -5,6 +5,7 @@ import (
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/utils"
+	"net/http"
 	"net/url"
 	"slices"
 	"strconv"
@@ -43,7 +44,7 @@ func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	return false, true, true
 }
 
-func Request(context *gin.Context, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
+func Request(context any, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
 	if rule.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Request action", rule.ID)
 		errors.WriteErrorActionLog(msg)
@@ -80,10 +81,6 @@ func Request(context *gin.Context, targetPath []globals.Target, target any, rule
 	body := globals.DictAny{
 		"time": time.Now().Format(utils.TimeStampLayout),
 		"output": target,
-		"user_agent": context.Request.UserAgent(),
-		"client_ip": context.RemoteIP(),
-		"method": context.Request.Method,
-		"path": context.Request.URL.Path,
 		"target": targetValues,
 		"rule": globals.DictAny{
 			"name": rule.Name,
@@ -96,6 +93,18 @@ func Request(context *gin.Context, targetPath []globals.Target, target any, rule
 			"action_configuration": rule.ActionConfiguration,
 			"severity": rule.Severity,
 		},
+	}
+	switch ctx := context.(type) {
+	case *gin.Context:
+		body["user_agent"] = ctx.Request.UserAgent()
+		body["client_ip"] = ctx.RemoteIP()
+		body["method"] = ctx.Request.Method
+		body["path"] = ctx.Request.URL.Path
+	case *http.Response:
+		body["user_agent"] = ctx.Request.UserAgent()
+		body["client_ip"] = ctx.Request.RemoteAddr
+		body["method"] = ctx.Request.Method
+		body["path"] = ctx.Request.URL.Path
 	}
 	request, err := utils.NewHttp(options[0], options[1], body)
 	if err != nil {
@@ -148,7 +157,7 @@ func SetLevel(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	return false, true, true
 }
 
-func Report(context *gin.Context, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
+func Report(context any, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
 	var targetIds globals.ListUint
 	for _, target := range targetPath {
 		targetIds = append(targetIds, target.ID)
@@ -159,17 +168,25 @@ func Report(context *gin.Context, group *globals.Group, targetPath []globals.Tar
 			"username": utils.FallbackWhenEmpty(&globals.SecurityConfigs.Username, nil),
 			"password": utils.FallbackWhenEmpty(&globals.SecurityConfigs.Password, nil),
 		},
-		"data": globals.DictAny{
-			"time": time.Now().Format(utils.TimeStampLayout),
-			"output": target,
-			"user_agent": context.Request.UserAgent(),
-			"client_ip": context.RemoteIP(),
-			"method": context.Request.Method,
-			"path": context.Request.URL.Path,
-			"target_ids": targetIds,
-			"rule_id": rule.ID,
-		},
 	}
+	data := make(globals.DictAny, 0)
+	data["time"] = time.Now().Format(utils.TimeStampLayout)
+	data["output"] = target
+	data["target_ids"] = targetIds
+	data["rule_id"] = rule.ID
+	switch ctx := context.(type) {
+	case *gin.Context:
+		data["user_agent"] = ctx.Request.UserAgent()
+		data["client_ip"] = ctx.RemoteIP()
+		data["method"] = ctx.Request.Method
+		data["path"] = ctx.Request.URL.Path
+	case *http.Response:
+		data["user_agent"] = ctx.Request.UserAgent()
+		data["client_ip"] = ctx.Request.RemoteAddr
+		data["method"] = ctx.Request.Method
+		data["path"] = ctx.Request.URL.Path
+	}
+	body["data"] = data
 	managerAddress := fmt.Sprintf("https://%s/api/report/create", globals.SecurityConfigs.ManagerHost)
 	request, err := utils.NewHttp("post", managerAddress, body)
 	if err != nil {

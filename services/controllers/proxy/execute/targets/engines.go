@@ -32,7 +32,7 @@ func IndexOf(targets *globals.ListString, index int) string {
 	return (*targets)[index]
 }
 
-func ProcessArrayTarget(context *gin.Context, target *globals.Target) any {
+func ProcessArrayTarget(context any, target *globals.Target) any {
 	targetValue := GetArrayTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
@@ -87,7 +87,7 @@ func Remainder(target float64, number float64) float64 {
 	return math.Mod(target, number)
 }
 
-func ProcessNumberTarget(context *gin.Context, target *globals.Target) any {
+func ProcessNumberTarget(context any, target *globals.Target) any {
 	targetValue := GetNumberTarget(context, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
@@ -193,8 +193,8 @@ func Hash(target string, algorithm string) string {
 	return ""
 }
 
-func ProcessStringTarget(context *gin.Context, target *globals.Target) any {
-	targetValue := GetStringTarget(context, target)
+func ProcessStringTarget(context any, contextGin *gin.Context, target *globals.Target) any {
+	targetValue := GetStringTarget(context, contextGin, target)
 	if target.Engine != nil {
 		if target.EngineConfiguration != nil {
 			if target.FinalDatatype == "array" {

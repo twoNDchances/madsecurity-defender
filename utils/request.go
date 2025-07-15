@@ -69,7 +69,6 @@ func (h *httpRequest) Send() (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	req, err := http.NewRequest(h.methodUpper(), h.url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err

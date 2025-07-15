@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Perform(context *gin.Context, group *globals.Group, targetPath []globals.Target, targetValue any, rule *globals.Rule) (bool, bool, bool) {
+func Perform(context any, contextGin *gin.Context, group *globals.Group, targetPath []globals.Target, targetValue any, rule *globals.Rule) (bool, bool, bool) {
 	var forceReturn, result, audit bool
 	switch *rule.Action {
 	case "allow":
@@ -14,17 +14,17 @@ func Perform(context *gin.Context, group *globals.Group, targetPath []globals.Ta
 	case "deny":
 		forceReturn, result, audit = Deny()
 	case "inspect":
-		forceReturn, result, audit = Inspect(context, rule)
+		forceReturn, result, audit = Inspect(contextGin, rule)
 	case "request":
 		forceReturn, result, audit = Request(context, targetPath, targetValue, rule)
 	case "setScore":
-		forceReturn, result, audit = SetScore(context, rule)
+		forceReturn, result, audit = SetScore(contextGin, rule)
 	case "setLevel":
-		forceReturn, result, audit = SetLevel(context, rule)
+		forceReturn, result, audit = SetLevel(contextGin, rule)
 	case "report":
 		forceReturn, result, audit = Report(context, group, targetPath, targetValue, rule)
 	case "setVariable":
-		forceReturn, result, audit = SetVariable(context, rule)
+		forceReturn, result, audit = SetVariable(contextGin, rule)
 	}
 	return forceReturn, result, audit
 }

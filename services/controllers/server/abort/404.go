@@ -1,7 +1,7 @@
 package abort
 
 import (
-	"errors"
+	// "errors"
 	"madsecurity-defender/utils"
 	"net/http"
 
@@ -9,7 +9,7 @@ import (
 )
 
 func NotFoundJson(context *gin.Context, path string) {
-	context.Error(errors.New("page not exists"))
+	// context.Error(errors.New("page not exists"))
 	var response gin.H
 	if err := utils.ReadJson(path, &response); err != nil {
 		response = gin.H{
@@ -32,7 +32,7 @@ func NotFoundHtml(context *gin.Context, path string) {
 		defaultData, _ := utils.ReadFile(defaultPath)
 		response = defaultData
 	}
-	context.Error(errors.New("page not exists"))
+	// context.Error(errors.New("page not exists"))
 	context.Data(statusCode, contentType, response)
 	context.Abort()
 }

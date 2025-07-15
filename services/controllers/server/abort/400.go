@@ -1,7 +1,7 @@
 package abort
 
 import (
-	"errors"
+	// "errors"
 	"madsecurity-defender/globals"
 	"net/http"
 
@@ -9,7 +9,7 @@ import (
 )
 
 func BadRequest(context *gin.Context, err string) {
-	context.Error(errors.New(err))
+	// context.Error(errors.New(err))
 	if globals.SecurityConfigs.MaskEnable {
 		Mask(context)
 		return

@@ -1,7 +1,7 @@
 package abort
 
 import (
-	"errors"
+	// "errors"
 	"madsecurity-defender/globals"
 	"net/http"
 
@@ -9,7 +9,7 @@ import (
 )
 
 func MethodNotAllowed(context *gin.Context) {
-	context.Error(errors.New("method mismatch"))
+	// context.Error(errors.New("method mismatch"))
 	if globals.SecurityConfigs.MaskEnable {
 		Mask(context)
 		return

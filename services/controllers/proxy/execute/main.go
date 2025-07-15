@@ -20,10 +20,7 @@ type actionCallback struct {
 	rule        *globals.Rule
 }
 
-func Request(context *gin.Context) bool {
-	context.Set("violation_level", uint(globals.ProxyConfigs.ViolationLevel))
-	context.Set("current_score", 0)
-	context.Set("violation_score", globals.ProxyConfigs.ViolationScore)
+func Execute(context any, contextGin *gin.Context) bool {
 	groupProcessed := make(globals.ListUint, 0)
 	retry := true
 	for retry {
@@ -32,10 +29,10 @@ func Request(context *gin.Context) bool {
 			if slices.Contains(groupProcessed, group.ID) {
 				continue
 			}
-			if group.Level > context.GetUint("violation_level") {
+			if group.Level > contextGin.GetUint("violation_level") {
 				continue
 			}
-			oldLevel := context.GetUint("violation_level")
+			oldLevel := contextGin.GetUint("violation_level")
 			ruleGetted := func() []globals.Rule {
 				rules := make([]globals.Rule, 0)
 				for _, ruleId := range group.Rules {
@@ -49,8 +46,15 @@ func Request(context *gin.Context) bool {
 			actionConditions := make([]bool, 0)
 			actionCallbacks := make([]actionCallback, 0)
 			for _, rule := range rules {
-				if !slices.Contains(globals.ListUint8{0, 1, 2}, rule.Phase) {
-					continue
+				switch context.(type) {
+				case *gin.Context:
+					if !slices.Contains(globals.ListUint8{0, 1, 2}, rule.Phase) {
+						continue
+					}
+				case *http.Response:
+					if !slices.Contains(globals.ListUint8{3, 4, 5}, rule.Phase) {
+						continue
+					}
 				}
 				targetGetted := func() ([]globals.Target, any) {
 					var (
@@ -63,7 +67,7 @@ func Request(context *gin.Context) bool {
 							targetPath = []globals.Target{target}
 							targetProcessed = targets.ProcessImmutableTarget(context, &target)
 						} else {
-							targetPath, targetProcessed = targets.ProcessTarget(context, target.ID)
+							targetPath, targetProcessed = targets.ProcessTarget(context, contextGin, target.ID)
 						}
 					}
 					return targetPath, targetProcessed
@@ -93,6 +97,7 @@ func Request(context *gin.Context) bool {
 				for _, actionCallback := range actionCallbacks {
 					forceReturn, result, audit := actions.Perform(
 						context,
+						contextGin,
 						&group,
 						actionCallback.targetPath,
 						actionCallback.targetValue,
@@ -116,15 +121,11 @@ func Request(context *gin.Context) bool {
 				}
 			}
 			groupProcessed = append(groupProcessed, group.ID)
-			if oldLevel != context.GetUint("violation_level") {
+			if oldLevel != contextGin.GetUint("violation_level") {
 				retry = true
 				break
 			}
 		}
 	}
-	return context.GetInt("current_score") < context.GetInt("violation_score")
-}
-
-func Response(response *http.Response) bool {
-	return false
+	return contextGin.GetInt("current_score") < contextGin.GetInt("violation_score")
 }

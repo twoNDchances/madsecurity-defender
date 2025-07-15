@@ -1,7 +1,7 @@
 package abort
 
 import (
-	"errors"
+	// "errors"
 	"madsecurity-defender/globals"
 	"net/http"
 
@@ -9,7 +9,7 @@ import (
 )
 
 func Unauthorized(context *gin.Context) {
-	context.Error(errors.New("basic auth fail"))
+	// context.Error(errors.New("basic auth fail"))
 	if globals.SecurityConfigs.MaskEnable {
 		Mask(context)
 		return

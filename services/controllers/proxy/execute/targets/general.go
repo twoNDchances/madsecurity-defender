@@ -6,7 +6,9 @@ import (
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase2"
+	"madsecurity-defender/services/controllers/proxy/execute/targets/phase3"
 	"madsecurity-defender/utils"
+	"net/http"
 	"slices"
 	"strings"
 
@@ -39,9 +41,11 @@ func getValueFromPhase2Type(context *gin.Context, target *globals.Target) global
 	return values
 }
 
-func getValueFromPhase3Type(context *gin.Context, target *globals.Target) globals.DictString {
+func getValueFromPhase3Type(context *http.Response, target *globals.Target) globals.DictString {
 	raw := make(map[string][]string, 0)
-	//
+	if target.Type == "header" {
+		raw = phase3.GetHeaderData(context)
+	}
 	values := make(globals.DictString, 0)
 	for key, value := range raw {
 		values[strings.ToLower(key)] = strings.Join(value, ",")
@@ -49,13 +53,13 @@ func getValueFromPhase3Type(context *gin.Context, target *globals.Target) global
 	return values
 }
 
-func getValueFromPhase4Type(context *gin.Context, target *globals.Target) globals.DictString {
+func getValueFromPhase4Type(context *http.Response, target *globals.Target) globals.DictString {
 	values := make(globals.DictString, 0)
 	//
 	return values
 }
 
-func GetArrayTarget(context *gin.Context, target *globals.Target) globals.ListString {
+func GetArrayTarget(context any, target *globals.Target) globals.ListString {
 	var needed globals.ListString
 	if  target.Datatype == "array" && target.WordlistID != nil {
 		words := make(globals.ListString, 0)
@@ -65,15 +69,21 @@ func GetArrayTarget(context *gin.Context, target *globals.Target) globals.ListSt
 			}
 		}
 		var values globals.DictString
-		switch target.Phase {
-		case 1:
-			values = getValueFromPhase1Type(context, target)
-		case 2:
-			values = getValueFromPhase2Type(context, target)
-		case 3:
-			values = getValueFromPhase3Type(context, target)
-		case 4:
-			values = getValueFromPhase4Type(context, target)
+		switch ctx := context.(type) {
+		case *gin.Context:
+			switch target.Phase {
+			case 1:
+				values = getValueFromPhase1Type(ctx, target)
+			case 2:
+				values = getValueFromPhase2Type(ctx, target)
+			}
+		case *http.Response:
+			switch target.Phase {
+			case 3:
+				values = getValueFromPhase3Type(ctx, target)
+			case 4:
+				values = getValueFromPhase4Type(ctx, target)
+			}
 		}
 		for _, word := range words {
 			if value, ok := values[word]; ok {
@@ -84,19 +94,25 @@ func GetArrayTarget(context *gin.Context, target *globals.Target) globals.ListSt
 	return needed
 }
 
-func GetNumberTarget(context *gin.Context, target *globals.Target) float64 {
+func GetNumberTarget(context any, target *globals.Target) float64 {
 	var needed float64
 	if target.Datatype == "number" {
 		var values globals.DictString
-		switch target.Phase {
-		case 1:
-			values = getValueFromPhase1Type(context, target)
-		case 2:
-			values = getValueFromPhase2Type(context, target)
-		case 3:
-			values = getValueFromPhase3Type(context, target)
-		case 4:
-			values = getValueFromPhase4Type(context, target)
+		switch ctx := context.(type) {
+		case *gin.Context:
+			switch target.Phase {
+			case 1:
+				values = getValueFromPhase1Type(ctx, target)
+			case 2:
+				values = getValueFromPhase2Type(ctx, target)
+			}
+		case *http.Response:
+			switch target.Phase {
+			case 3:
+				values = getValueFromPhase3Type(ctx, target)
+			case 4:
+				values = getValueFromPhase4Type(ctx, target)
+			}
 		}
 		if value, ok := values[target.Name]; ok {
 			number, err := utils.ToFloat64(value)
@@ -111,22 +127,28 @@ func GetNumberTarget(context *gin.Context, target *globals.Target) float64 {
 	return needed
 }
 
-func GetStringTarget(context *gin.Context, target *globals.Target) string {
+func GetStringTarget(context any, contextGin *gin.Context, target *globals.Target) string {
 	var needed string
 	if target.Datatype == "string" {
 		if target.Type == "getter" {
-			needed = context.GetString(target.Name)
+			needed = contextGin.GetString(target.Name)
 		} else {
 			var values globals.DictString
-			switch target.Phase {
-			case 1:
-				values = getValueFromPhase1Type(context, target)
-			case 2:
-				values = getValueFromPhase2Type(context, target)
-			case 3:
-				values = getValueFromPhase3Type(context, target)
-			case 4:
-				values = getValueFromPhase4Type(context, target)
+			switch ctx := context.(type) {
+			case *gin.Context:
+				switch target.Phase {
+				case 1:
+					values = getValueFromPhase1Type(ctx, target)
+				case 2:
+					values = getValueFromPhase2Type(ctx, target)
+				}
+			case *http.Response:
+				switch target.Phase {
+				case 3:
+					values = getValueFromPhase3Type(ctx, target)
+				case 4:
+					values = getValueFromPhase4Type(ctx, target)
+				}
 			}
 			if value, ok := values[target.Name]; ok {
 				needed = value
@@ -136,7 +158,7 @@ func GetStringTarget(context *gin.Context, target *globals.Target) string {
 	return needed
 }
 
-func GetToRootTargets(context *gin.Context, targetId uint) []globals.Target {
+func GetToRootTargets(targetId uint) []globals.Target {
 	visited := make(map[uint]bool)
 	path := make([]globals.Target, 0)
 	currentId := targetId

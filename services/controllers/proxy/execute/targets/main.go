@@ -7,87 +7,107 @@ import (
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase0"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase2"
+	"madsecurity-defender/services/controllers/proxy/execute/targets/phase3"
 	"madsecurity-defender/utils"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func ProcessImmutableTarget(context *gin.Context, target *globals.Target) any {
+func ProcessImmutableTarget(context any, target *globals.Target) any {
 	var targetGetted any
-	switch target.Phase {
-	case 0:
-		if target.Alias == "full-request" {
-			targetGetted = phase0.FullRequest(context, target)
+	switch ctx := context.(type) {
+	case *gin.Context:
+		switch target.Phase {
+		case 0:
+			if target.Alias == "full-request" {
+				targetGetted = phase0.FullRequest(ctx, target)
+			}
+		case 1:
+			switch target.Alias {
+			case "header-keys-request":
+				targetGetted = phase1.HeaderKeys(ctx, target)
+			case "header-values-request":
+				targetGetted = phase1.HeaderValues(ctx, target)
+			case "url-args-keys":
+				targetGetted = phase1.UrlArgsKeys(ctx, target)
+			case "url-args-values":
+				targetGetted = phase1.UrlArgsValues(ctx, target)
+			case "header-size-request":
+				targetGetted = phase1.HeaderSize(ctx, target)
+			case "url-port":
+				targetGetted = phase1.UrlPort(ctx, target)
+			case "url-args-size":
+				targetGetted = phase1.UrlArgsSize(ctx, target)
+			case "client-ip":
+				targetGetted = phase1.ClientIp(ctx, target)
+			case "client-method":
+				targetGetted = phase1.ClientMethod(ctx, target)
+			case "url-path":
+				targetGetted = phase1.UrlPath(ctx, target)
+			case "url-scheme":
+				targetGetted = phase1.UrlScheme(ctx, target)
+			case "url-host":
+				targetGetted = phase1.UrlHost(ctx, target)
+			case "full-header-request":
+				targetGetted = phase1.FullHeader(ctx, target)
+			}
+		case 2:
+			switch target.Alias {
+			case "body-keys-request":
+				targetGetted = phase2.BodyKeys(ctx, target)
+			case "file-keys-request":
+				targetGetted = phase2.FileKeys(ctx, target)
+			case "body-values-request":
+				targetGetted = phase2.BodyValues(ctx, target)
+			case "file-values-request":
+				targetGetted = phase2.FileValues(ctx, target)
+			case "file-names-request":
+				targetGetted = phase2.FileNames(ctx, target)
+			case "file-extensions-request":
+				targetGetted = phase2.FileExtensions(ctx, target)
+			case "body-size-request":
+				targetGetted = phase2.BodySize(ctx, target)
+			case "file-size-request":
+				targetGetted = phase2.FileSize(ctx, target)
+			case "file-name-size-request":
+				targetGetted = phase2.FileNameSize(ctx, target)
+			case "body-length-request":
+				targetGetted = phase2.BodyLength(ctx, target)
+			case "file-length-request":
+				targetGetted = phase2.FileLength(ctx, target)
+			case "body-full-request":
+				targetGetted = phase2.FullBody(ctx, target)
+			}
 		}
-	case 1:
-		switch target.Alias {
-		case "header-keys":
-			targetGetted = phase1.HeaderKeys(context, target)
-		case "header-values":
-			targetGetted = phase1.HeaderValues(context, target)
-		case "url-args-keys":
-			targetGetted = phase1.UrlArgsKeys(context, target)
-		case "url-args-values":
-			targetGetted = phase1.UrlArgsValues(context, target)
-		case "header-size":
-			targetGetted = phase1.HeaderSize(context, target)
-		case "url-port":
-			targetGetted = phase1.UrlPort(context, target)
-		case "url-args-size":
-			targetGetted = phase1.UrlArgsSize(context, target)
-		case "client-ip":
-			targetGetted = phase1.ClientIp(context, target)
-		case "client-method":
-			targetGetted = phase1.ClientMethod(context, target)
-		case "url-path":
-			targetGetted = phase1.UrlPath(context, target)
-		case "url-scheme":
-			targetGetted = phase1.UrlScheme(context, target)
-		case "url-host":
-			targetGetted = phase1.UrlHost(context, target)
-		}
-	case 2:
-		switch target.Alias {
-		case "body-keys":
-			targetGetted = phase2.BodyKeys(context, target)
-		case "file-keys":
-			targetGetted = phase2.FileKeys(context, target)
-		case "body-values":
-			targetGetted = phase2.BodyValues(context, target)
-		case "file-values":
-			targetGetted = phase2.FileValues(context, target)
-		case "file-names":
-			targetGetted = phase2.FileNames(context, target)
-		case "file-extensions":
-			targetGetted = phase2.FileExtensions(context, target)
-		case "body-size":
-			targetGetted = phase2.BodySize(context, target)
-		case "file-size":
-			targetGetted = phase2.FileSize(context, target)
-		case "file-name-size":
-			targetGetted = phase2.FileNameSize(context, target)
-		case "body-length":
-			targetGetted = phase2.BodyLength(context, target)
-		case "file-length":
-			targetGetted = phase2.FileLength(context, target)
-		case "body-full":
-			targetGetted = phase2.FullBody(context, target)
-		}
-	case 3:
-		switch target.Alias {
-		}
-	case 4:
-		switch target.Alias {
-		}
-	case 5:
-		if target.Alias == "full-response" {
+	case *http.Response:
+		switch target.Phase {
+		case 3:
+			switch target.Alias {
+			case "header-keys-response":
+				targetGetted = phase3.HeaderKeys(ctx, target)
+			case "header-values-response":
+				targetGetted = phase3.HeaderValues(ctx, target)
+			case "header-size-response":
+				targetGetted = phase3.HeaderSize(ctx, target)
+			case "server-status":
+				targetGetted = phase3.ServerStatus(ctx, target)
+			case "full-header-response":
+				targetGetted = phase3.FullHeader(ctx, target)
+			}
+		case 4:
+			switch target.Alias {
+			}
+		case 5:
+			if target.Alias == "full-response" {
+			}
 		}
 	}
 	return targetGetted
 }
 
-func ProcessUnimmutableTarget(context *gin.Context, target *globals.Target) any {
+func ProcessUnimmutableTarget(context any, contextGin *gin.Context, target *globals.Target) any {
 	var targetProcessed any
 	switch target.Datatype {
 	case "array":
@@ -95,13 +115,13 @@ func ProcessUnimmutableTarget(context *gin.Context, target *globals.Target) any 
 	case "number":
 		targetProcessed = ProcessNumberTarget(context, target)
 	case "string":
-		targetProcessed = ProcessStringTarget(context, target)
+		targetProcessed = ProcessStringTarget(context, contextGin, target)
 	}
 	return targetProcessed
 }
 
-func ProcessRefererTarget(context *gin.Context, targetId uint) ([]globals.Target, any) {
-	targetPath := GetToRootTargets(context, targetId)
+func ProcessRefererTarget(context any, contextGin *gin.Context, targetId uint) ([]globals.Target, any) {
+	targetPath := GetToRootTargets(targetId)
 	var targetProcessed any
 	if len(targetPath) == 0 {
 		msg := fmt.Sprintf("Target %d: not found Target", targetId)
@@ -112,7 +132,7 @@ func ProcessRefererTarget(context *gin.Context, targetId uint) ([]globals.Target
 	if root.Immutable {
 		targetProcessed = ProcessImmutableTarget(context, &root)
 	} else {
-		targetProcessed = ProcessUnimmutableTarget(context, &root)
+		targetProcessed = ProcessUnimmutableTarget(context, contextGin, &root)
 	}
 	if targetProcessed == nil {
 		//
@@ -239,7 +259,7 @@ func ProcessRefererTarget(context *gin.Context, targetId uint) ([]globals.Target
 	return targetPath, targetProcessed
 }
 
-func ProcessTarget(context *gin.Context, targetId uint) ([]globals.Target, any) {
+func ProcessTarget(context any, contextGin *gin.Context, targetId uint) ([]globals.Target, any) {
 	var targetPath []globals.Target
 	target, ok := globals.Targets[targetId]
 	if !ok {
@@ -253,9 +273,9 @@ func ProcessTarget(context *gin.Context, targetId uint) ([]globals.Target, any) 
 		switch target.Type {
 		case "getter", "header", "url.args", "body", "file":
 			targetPath = []globals.Target{target}
-			targetProcessed = ProcessUnimmutableTarget(context, &target)
+			targetProcessed = ProcessUnimmutableTarget(context, contextGin, &target)
 		case "target":
-			targetPath, targetProcessed = ProcessRefererTarget(context, targetId)
+			targetPath, targetProcessed = ProcessRefererTarget(context, contextGin, targetId)
 		}
 	}
 	return targetPath, targetProcessed

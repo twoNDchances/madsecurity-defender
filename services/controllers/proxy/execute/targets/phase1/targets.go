@@ -13,7 +13,7 @@ import (
 
 func HeaderKeys(context *gin.Context, target *globals.Target) globals.ListString {
 	keys := make(globals.ListString, 0)
-	if target.Phase == 1 && target.Alias == "header-keys" && target.Name == "keys" && target.Immutable && target.TargetID == nil {
+	if target.Phase == 1 && target.Alias == "header-keys-request" && target.Name == "keys" && target.Immutable && target.TargetID == nil {
 		headers := GetHeaderData(context)
 		for key := range headers {
 			keys = append(keys, strings.ToLower(key))
@@ -24,7 +24,7 @@ func HeaderKeys(context *gin.Context, target *globals.Target) globals.ListString
 
 func HeaderValues(context *gin.Context, target *globals.Target) globals.ListString {
 	values := make(globals.ListString, 0)
-	if target.Phase == 1 && target.Alias == "header-values" && target.Name == "value" && target.Immutable && target.TargetID == nil {
+	if target.Phase == 1 && target.Alias == "header-values-request" && target.Name == "value" && target.Immutable && target.TargetID == nil {
 		headers := GetHeaderData(context)
 		for _, value := range headers {
 			values = append(values, value...)
@@ -57,8 +57,8 @@ func UrlArgsValues(context *gin.Context, target *globals.Target) globals.ListStr
 
 func HeaderSize(context *gin.Context, target *globals.Target) float64 {
 	size := 0.0
-	if target.Phase == 1 && target.Alias == "header-size" && target.Name == "size" && target.Immutable && target.TargetID == nil {
-		size = float64(len(HeaderKeys(context, target)))
+	if target.Phase == 1 && target.Alias == "header-size-request" && target.Name == "size" && target.Immutable && target.TargetID == nil {
+		size = float64(len(GetHeaderData(context)))
 	}
 	return size
 }
@@ -85,7 +85,7 @@ func UrlPort(context *gin.Context, target *globals.Target) float64 {
 func UrlArgsSize(context *gin.Context, target *globals.Target) float64 {
 	size := 0.0
 	if target.Phase == 1 && target.Alias == "url-args-size" && target.Name == "size" && target.Immutable && target.TargetID == nil {
-		size = float64(len(UrlArgsKeys(context, target)))
+		size = float64(len(GetUrlArgsData(context)))
 	}
 	return size
 }
@@ -128,4 +128,14 @@ func UrlHost(context *gin.Context, target *globals.Target) string {
 		host = context.Request.URL.Host
 	}
 	return host
+}
+
+func FullHeader(context *gin.Context, target *globals.Target) string {
+	var raw strings.Builder
+	if target.Phase == 1 && target.Alias == "full-header-request" && target.Name == "raw" && target.Immutable && target.TargetID == nil {
+		for key, value := range GetHeaderData(context) {
+			raw.WriteString(fmt.Sprintf("%s: %s\n", key, strings.Join(value, ",")))
+		}
+	}
+	return raw.String()
 }

@@ -1,10 +1,10 @@
 package pass
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"madsecurity-defender/globals"
+	"madsecurity-defender/services/controllers/proxy/execute"
+	"madsecurity-defender/services/controllers/server/abort"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -21,22 +21,11 @@ func Pass(context *gin.Context) {
 		request.URL.Path = fmt.Sprintf("%s%s", globals.BackendConfigs.Path, context.Param("backendPath"))
 		request.Host = remote.Host
 		request.Header = context.Request.Header.Clone()
-
-		// var bodyBytes []byte
-		// bodyBytes, _ = io.ReadAll(context.Request.Body)
-		// context.Request.Body.Close()
-		//
-		// context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		// request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		// request.ContentLength = int64(len(bodyBytes))
 	}
 	proxy.ModifyResponse = func(response *http.Response) error {
-		bodyBytes, err := io.ReadAll(response.Body)
-		if err != nil {
-			return err
+		if !execute.Execute(response, context) {
+			abort.Forbidden(response)
 		}
-		//
-		response.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		return nil
 	}
 	proxy.ServeHTTP(context.Writer, context.Request)
