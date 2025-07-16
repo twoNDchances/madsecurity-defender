@@ -2,7 +2,6 @@ package execute
 
 import (
 	"fmt"
-	"log"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/actions"
 	"madsecurity-defender/services/controllers/proxy/execute/comparators"
@@ -81,10 +80,8 @@ func Execute(context any, contextGin *gin.Context) bool {
 				}
 				if result := comparators.Compare(targetValue, &rule); !result {
 					actionConditions = append(actionConditions, result)
-					log.Println(rule.Alias, result)
 					continue
 				} else {
-					log.Println(rule.Alias, result)
 					actionConditions = append(actionConditions, result)
 				}
 				if rule.Action == nil {

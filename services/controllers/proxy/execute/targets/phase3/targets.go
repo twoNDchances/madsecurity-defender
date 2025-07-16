@@ -12,7 +12,7 @@ func HeaderKeys(context *http.Response, target *globals.Target) globals.ListStri
 	if target.Phase == 3 && target.Alias == "header-keys-response" && target.Name == "keys" && target.Immutable && target.TargetID == nil {
 		headers := GetHeaderData(context)
 		for key := range headers {
-			keys = append(keys, key)
+			keys = append(keys, strings.ToLower(key))
 		}
 	}
 	return keys
@@ -43,6 +43,14 @@ func ServerStatus(context *http.Response, target *globals.Target) float64 {
 		status = float64(context.Request.Response.StatusCode)
 	}
 	return status
+}
+
+func ServerProtocol(context *http.Response, target *globals.Target) string {
+	var protocol string
+	if target.Phase == 3 && target.Alias == "server-protocol" && target.Name == "protocol" && target.Immutable && target.TargetID == nil {
+		protocol = context.Proto
+	}
+	return protocol
 }
 
 func FullHeader(context *http.Response, target *globals.Target) string {

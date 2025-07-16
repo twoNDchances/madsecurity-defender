@@ -2,7 +2,6 @@ package targets
 
 import (
 	"fmt"
-	"log"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase0"
@@ -41,6 +40,8 @@ func ProcessImmutableTarget(context any, target *globals.Target) any {
 				targetGetted = phase1.UrlPort(ctx, target)
 			case "url-args-size":
 				targetGetted = phase1.UrlArgsSize(ctx, target)
+			case "client-protocol":
+				targetGetted = phase1.ClientProtocol(ctx, target)
 			case "client-ip":
 				targetGetted = phase1.ClientIp(ctx, target)
 			case "client-method":
@@ -94,6 +95,8 @@ func ProcessImmutableTarget(context any, target *globals.Target) any {
 				targetGetted = phase3.HeaderSize(ctx, target)
 			case "server-status":
 				targetGetted = phase3.ServerStatus(ctx, target)
+			case "server-protocol":
+				targetGetted = phase3.ServerProtocol(ctx, target)
 			case "full-header-response":
 				targetGetted = phase3.FullHeader(ctx, target)
 			}
@@ -117,7 +120,6 @@ func ProcessUnimmutableTarget(context any, contextGin *gin.Context, target *glob
 		targetProcessed = ProcessNumberTarget(context, target)
 	case "string":
 		targetProcessed = ProcessStringTarget(context, contextGin, target)
-		log.Println(targetProcessed)
 	}
 	return targetProcessed
 }

@@ -90,6 +90,14 @@ func UrlArgsSize(context *gin.Context, target *globals.Target) float64 {
 	return size
 }
 
+func ClientProtocol(context *gin.Context, target *globals.Target) string {
+	var protocol string
+	if target.Phase == 1 && target.Alias == "client-protocol" && target.Name == "protocol" && target.Immutable && target.TargetID == nil {
+		protocol = context.Request.Proto
+	}
+	return protocol
+}
+
 func ClientIp(context *gin.Context, target *globals.Target) string {
 	var ip string
 	if target.Phase == 1 && target.Alias == "client-ip" && target.Name == "ip" && target.Immutable && target.TargetID == nil {
