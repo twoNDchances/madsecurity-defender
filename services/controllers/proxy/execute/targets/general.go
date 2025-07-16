@@ -2,6 +2,7 @@ package targets
 
 import (
 	"fmt"
+	"log"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
@@ -152,6 +153,7 @@ func GetStringTarget(context any, contextGin *gin.Context, target *globals.Targe
 			}
 			if value, ok := values[target.Name]; ok {
 				needed = value
+				log.Println(needed)
 			}
 		}
 	}

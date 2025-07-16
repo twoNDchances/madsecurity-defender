@@ -2,6 +2,7 @@ package targets
 
 import (
 	"fmt"
+	"log"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase0"
@@ -116,6 +117,7 @@ func ProcessUnimmutableTarget(context any, contextGin *gin.Context, target *glob
 		targetProcessed = ProcessNumberTarget(context, target)
 	case "string":
 		targetProcessed = ProcessStringTarget(context, contextGin, target)
+		log.Println(targetProcessed)
 	}
 	return targetProcessed
 }

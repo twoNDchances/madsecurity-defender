@@ -1,6 +1,9 @@
 package comparators
 
-import "madsecurity-defender/globals"
+import (
+	"log"
+	"madsecurity-defender/globals"
+)
 
 func Compare(target any, rule *globals.Rule) bool {
 	var result bool
@@ -22,6 +25,7 @@ func Compare(target any, rule *globals.Rule) bool {
 			result = Equal(t, rule)
 		case "@greaterThan":
 			result = GreaterThan(t, rule)
+			log.Println(result)
 		case "@greaterThanOrEqual":
 			result = GreaterThanOrEqual(t, rule)
 		case "@lessThan":
