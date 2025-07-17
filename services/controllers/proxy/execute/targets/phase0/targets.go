@@ -24,7 +24,7 @@ func FullRequest(context *gin.Context, target *globals.Target) string {
 			errors.WriteErrorTargetLog(msg)
 		} else {
 			context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-			raw = fmt.Sprintf("%s\n%s", headers.String(), string(bodyBytes))
+			raw = fmt.Sprintf("%s\n%s\n%s", context.Request.Proto, headers.String(), string(bodyBytes))
 		}
 	}
 	return raw

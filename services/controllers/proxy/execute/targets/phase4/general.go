@@ -34,7 +34,7 @@ func GetBodyData(context *http.Response, targetId uint) (globals.ListString, glo
 					msg := fmt.Sprintf("Target %d: %v", targetId, err)
 					errors.WriteErrorTargetLog(msg)
 				} else {
-					data := make(globals.DictAny, 0)
+					data := make(map[string]interface{}, 0)
 					switch strings.ToLower(match[1]) {
 					case "json":
 						if err := json.Unmarshal(bodyBytes, &data); err != nil {
@@ -61,7 +61,7 @@ func GetBodyData(context *http.Response, targetId uint) (globals.ListString, glo
 					if len(data) > 0 {
 						flatMap := make(globals.DictAny, 0)
 						utils.FlattenWithValues(data, "", flatMap)
-						for key, value := range data {
+						for key, value := range flatMap {
 							keys = append(keys, key)
 							values = append(values, fmt.Sprint(value))
 							maps[strings.ToLower(key)] = fmt.Sprint(value)

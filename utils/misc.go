@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"compress/flate"
 	"compress/gzip"
-	"compress/lzw"
+	"compress/zlib"
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/andybalholm/brotli"
 	"github.com/klauspost/compress/zstd"
@@ -25,7 +26,11 @@ func FlattenWithValues(data interface{}, prefix string, out map[string]interface
 		}
 	case []interface{}:
 		for i, val := range v {
-			fullKey := prefix + "." + strconv.Itoa(i)
+			idx := strconv.Itoa(i)
+			fullKey := idx
+			if prefix != "" {
+				fullKey = prefix + "." + idx
+			}
 			FlattenWithValues(val, fullKey, out)
 		}
 	default:
@@ -34,31 +39,36 @@ func FlattenWithValues(data interface{}, prefix string, out map[string]interface
 }
 
 func DecodeResponseBody(context *http.Response) ([]byte, error) {
+	encoding := strings.ToLower(context.Header.Get("Content-Encoding"))
 	var (
 		reader io.ReadCloser
 		err    error
 	)
-	switch context.Header.Get("Content-Encoding") {
+	switch encoding {
 	case "gzip":
 		reader, err = gzip.NewReader(context.Body)
-		if err != nil {
-			return nil, err
-		}
 	case "deflate":
-		reader = flate.NewReader(context.Body)
+		reader = io.NopCloser(flate.NewReader(context.Body))
+	case "zlib", "compress":
+		reader, err = zlib.NewReader(context.Body)
 	case "br":
 		reader = io.NopCloser(brotli.NewReader(context.Body))
 	case "zstd":
-		decoder, dErr := zstd.NewReader(context.Body)
-		if dErr != nil {
-			return nil, dErr
+		zreader, err := zstd.NewReader(context.Body)
+		if err != nil {
+			return nil, err
 		}
-		defer decoder.Close()
-		return io.ReadAll(decoder)
-	case "compress":
-		reader = io.NopCloser(lzw.NewReader(context.Body, lzw.MSB, 8))
+		defer zreader.Close()
+		data, err := io.ReadAll(zreader)
+		if err == nil {
+			context.Body = io.NopCloser(bytes.NewReader(data))
+		}
+		return data, err
 	default:
 		reader = context.Body
+	}
+	if err != nil {
+		return nil, err
 	}
 	defer reader.Close()
 	data, err := io.ReadAll(reader)

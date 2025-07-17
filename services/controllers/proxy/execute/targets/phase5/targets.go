@@ -21,7 +21,7 @@ func FullResponse(context *http.Response, target *globals.Target) string {
 			msg := fmt.Sprintf("Target %d: %v", target.ID, err)
 			errors.WriteErrorTargetLog(msg)
 		} else {
-			raw = fmt.Sprintf("%s\n%s", headers.String(), string(bodyBytes))
+			raw = fmt.Sprintf("%s\n%s\n%s", context.Proto, headers.String(), string(bodyBytes))
 		}
 	}
 	return raw
