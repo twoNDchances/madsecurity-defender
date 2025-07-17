@@ -1,61 +1,19 @@
 package phase4
 
 import (
-	"bytes"
-	"compress/flate"
-	"compress/gzip"
-	"compress/lzw"
+	"encoding/json"
 	"fmt"
-	"io"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
+	"madsecurity-defender/utils"
 	"mime"
 	"net/http"
 	"regexp"
 	"strings"
 
-	"github.com/andybalholm/brotli"
-	"github.com/klauspost/compress/zstd"
+	"github.com/basgys/goxml2json"
+	"gopkg.in/yaml.v3"
 )
-
-func decodeResponseBody(context *http.Response) ([]byte, error) {
-	var (
-		reader io.ReadCloser
-		err    error
-	)
-	switch context.Header.Get("Content-Encoding") {
-	case "gzip":
-		reader, err = gzip.NewReader(context.Body)
-		if err != nil {
-			return nil, err
-		}
-	case "deflate":
-		reader = flate.NewReader(context.Body)
-	case "br":
-		reader = io.NopCloser(brotli.NewReader(context.Body))
-	case "zstd":
-		decoder, dErr := zstd.NewReader(context.Body)
-		if dErr != nil {
-			return nil, dErr
-		}
-		defer decoder.Close()
-		return io.ReadAll(decoder)
-	case "compress":
-		reader = io.NopCloser(lzw.NewReader(context.Body, lzw.MSB, 8))
-	default:
-		reader = context.Body
-	}
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
-	context.Body = io.NopCloser(bytes.NewReader(data))
-	return data, nil
-}
-
-func extractApplicationJson(body string) {
-	
-}
 
 func GetBodyData(context *http.Response, targetId uint) (globals.ListString, globals.ListString, globals.DictString) {
 	keys := make(globals.ListString, 0)
@@ -71,10 +29,44 @@ func GetBodyData(context *http.Response, targetId uint) (globals.ListString, glo
 			formatRegex := regexp.MustCompile(`(?i)\b(json|xml|yaml)\b`)
 			match := formatRegex.FindStringSubmatch(mediaType)
 			if len(match) >= 2 {
-				switch strings.ToLower(match[1]) {
-				case "json":
-				case "xml":
-				case "yaml":
+				bodyBytes, err := utils.DecodeResponseBody(context)
+				if err != nil {
+					msg := fmt.Sprintf("Target %d: %v", targetId, err)
+					errors.WriteErrorTargetLog(msg)
+				} else {
+					data := make(globals.DictAny, 0)
+					switch strings.ToLower(match[1]) {
+					case "json":
+						if err := json.Unmarshal(bodyBytes, &data); err != nil {
+							msg := fmt.Sprintf("Target %d: %v", targetId, err)
+							errors.WriteErrorTargetLog(msg)
+						}
+					case "xml":
+						xmlReader := strings.NewReader(string(bodyBytes))
+						jsonReader, err := xml2json.Convert(xmlReader)
+						if err != nil {
+							msg := fmt.Sprintf("Target %d: %v", targetId, err)
+							errors.WriteErrorTargetLog(msg)
+						} else if err := json.Unmarshal(jsonReader.Bytes(), &data); err != nil {
+							msg := fmt.Sprintf("Target %d: %v", targetId, err)
+							errors.WriteErrorTargetLog(msg)
+						}
+					case "yaml":
+						err := yaml.Unmarshal(bodyBytes, &data)
+						if err != nil {
+							msg := fmt.Sprintf("Target %d: %v", targetId, err)
+							errors.WriteErrorTargetLog(msg)
+						}
+					}
+					if len(data) > 0 {
+						flatMap := make(globals.DictAny, 0)
+						utils.FlattenWithValues(data, "", flatMap)
+						for key, value := range data {
+							keys = append(keys, key)
+							values = append(values, fmt.Sprint(value))
+							maps[strings.ToLower(key)] = fmt.Sprint(value)
+						}
+					}
 				}
 			}
 		}

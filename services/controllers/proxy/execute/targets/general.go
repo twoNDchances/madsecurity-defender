@@ -7,6 +7,7 @@ import (
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase2"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase3"
+	"madsecurity-defender/services/controllers/proxy/execute/targets/phase4"
 	"madsecurity-defender/utils"
 	"net/http"
 	"slices"
@@ -55,7 +56,9 @@ func getValueFromPhase3Type(context *http.Response, target *globals.Target) glob
 
 func getValueFromPhase4Type(context *http.Response, target *globals.Target) globals.DictString {
 	values := make(globals.DictString, 0)
-	//
+	if target.Type == "body" {
+		_, _, values = phase4.GetBodyData(context, target.ID)
+	}
 	return values
 }
 

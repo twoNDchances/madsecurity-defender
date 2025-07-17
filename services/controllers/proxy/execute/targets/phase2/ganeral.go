@@ -6,45 +6,36 @@ import (
 	"io"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
+	"madsecurity-defender/utils"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/h2non/filetype"
 )
 
-func flattenWithValues(data interface{}, prefix string, out globals.DictAny) {
-	switch v := data.(type) {
-	case globals.DictAny:
-		for key, val := range v {
-			fullKey := key
-			if prefix != "" {
-				fullKey = prefix + "." + key
-			}
-			flattenWithValues(val, fullKey, out)
-		}
-	case []interface{}:
-		for i, val := range v {
-			fullKey := prefix + "." + strconv.Itoa(i)
-			flattenWithValues(val, fullKey, out)
-		}
-	default:
-		out[prefix] = v
-	}
-}
-
-func extractApplicationJson(context *gin.Context, targetId uint) (globals.ListString, globals.ListString, globals.DictString) {
+func extractApplication(context *gin.Context, targetId uint) (globals.ListString, globals.ListString, globals.DictString) {
 	keys := make(globals.ListString, 0)
 	values := make(globals.ListString, 0)
 	maps := make(globals.DictString, 0)
-	var data interface{}
-	if err := context.ShouldBindBodyWithJSON(&data); err != nil {
+	var (
+		data interface{}
+		err  error
+	)
+	switch context.ContentType() {
+	case "application/json":
+		err = context.ShouldBindBodyWithJSON(&data)
+	case "application/xml", "text/xml":
+		err = context.ShouldBindBodyWithXML(&data)
+	case "application/yaml":
+		err = context.ShouldBindBodyWithYAML(&data)
+	}
+	if err != nil {
 		msg := fmt.Sprintf("Target %d: %v", targetId, err)
 		errors.WriteErrorTargetLog(msg)
 	} else {
 		flatMap := make(globals.DictAny, 0)
-		flattenWithValues(data, "", flatMap)
+		utils.FlattenWithValues(data, "", flatMap)
 		for key, value := range flatMap {
 			keys = append(keys, key)
 			values = append(values, fmt.Sprint(value))
@@ -98,8 +89,8 @@ func GetBodyData(context *gin.Context, targetId uint) (globals.ListString, globa
 	if len(context.ContentType()) > 0 {
 		contentType := strings.ToLower(context.ContentType())
 		switch contentType {
-		case "application/json":
-			jsonKeys, jsonValues, json := extractApplicationJson(context, targetId)
+		case "application/json", "application/xml", "text/xml", "application/yaml":
+			jsonKeys, jsonValues, json := extractApplication(context, targetId)
 			keys = append(keys, jsonKeys...)
 			values = append(values, jsonValues...)
 			maps = json

@@ -8,6 +8,8 @@ import (
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase1"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase2"
 	"madsecurity-defender/services/controllers/proxy/execute/targets/phase3"
+	"madsecurity-defender/services/controllers/proxy/execute/targets/phase4"
+	"madsecurity-defender/services/controllers/proxy/execute/targets/phase5"
 	"madsecurity-defender/utils"
 	"net/http"
 	"strconv"
@@ -102,9 +104,20 @@ func ProcessImmutableTarget(context any, target *globals.Target) any {
 			}
 		case 4:
 			switch target.Alias {
+			case "body-keys-response":
+				targetGetted = phase4.BodyKeys(ctx, target)
+			case "body-values-response":
+				targetGetted = phase4.BodyValues(ctx, target)
+			case "body-size-response":
+				targetGetted = phase4.BodySize(ctx, target)
+			case "body-length-response":
+				targetGetted = phase4.BodyLength(ctx, target)
+			case "full-body-response":
+				targetGetted = phase4.FullBody(ctx, target)
 			}
 		case 5:
 			if target.Alias == "full-response" {
+				targetGetted = phase5.FullResponse(ctx, target)
 			}
 		}
 	}

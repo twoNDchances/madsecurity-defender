@@ -4,14 +4,17 @@ go 1.23.4
 
 require (
 	github.com/andybalholm/brotli v1.2.0
+	github.com/basgys/goxml2json v1.1.0
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/gin-gonic/gin v1.10.1
 	github.com/h2non/filetype v1.1.3
 	github.com/klauspost/compress v1.18.0
 	github.com/redis/go-redis/v9 v9.11.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/bitly/go-simplejson v0.5.1 // indirect
 	github.com/bytedance/sonic v1.13.3 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -38,5 +41,4 @@ require (
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
