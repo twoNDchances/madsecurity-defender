@@ -208,10 +208,34 @@ func Report(context any, group *globals.Group, targetPath []globals.Target, targ
 }
 
 func SetVariable(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
+	if rule.ActionConfiguration == nil {
+		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Set Variable action", rule.ID)
+		errors.WriteErrorActionLog(msg)
+		return true, false, false
+	}
 	options := strings.SplitN(*rule.ActionConfiguration, ",", 2)
 	if len(options) != 2 {
 		return true, false, false
 	}
 	context.Set(options[0], options[1])
+	return false, true, true
+}
+
+func SetHeader(context any, rule *globals.Rule) (bool, bool, bool) {
+	if rule.ActionConfiguration == nil {
+		msg := fmt.Sprintf("Rule %d: missing Action Configuration for Set Header action", rule.ID)
+		errors.WriteErrorActionLog(msg)
+		return true, false, false
+	}
+	options := strings.SplitN(*rule.ActionConfiguration, ",", 2)
+	if len(options) != 2 {
+		return true, false, false
+	}
+	switch ctx := context.(type) {
+	case *gin.Context:
+		ctx.Request.Header.Set(options[0], options[1])
+	case *http.Response:
+		ctx.Header.Set(options[0], options[1])
+	}
 	return false, true, true
 }

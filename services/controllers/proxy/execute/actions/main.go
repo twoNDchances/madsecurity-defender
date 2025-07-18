@@ -25,6 +25,8 @@ func Perform(context any, contextGin *gin.Context, group *globals.Group, targetP
 		forceReturn, result, audit = Report(context, group, targetPath, targetValue, rule)
 	case "setVariable":
 		forceReturn, result, audit = SetVariable(contextGin, rule)
+	case "setHeader":
+		forceReturn, result, audit = SetHeader(context, rule)
 	}
 	return forceReturn, result, audit
 }
