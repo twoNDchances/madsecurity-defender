@@ -86,24 +86,32 @@ func GetBodyData(context *gin.Context, targetId uint) (globals.ListString, globa
 	keys := make(globals.ListString, 0)
 	values := make(globals.ListString, 0)
 	maps := make(globals.DictString, 0)
-	if len(context.ContentType()) > 0 {
-		contentType := strings.ToLower(context.ContentType())
-		switch contentType {
-		case "application/json", "application/xml", "text/xml", "application/yaml":
-			jsonKeys, jsonValues, json := extractApplication(context, targetId)
-			keys = append(keys, jsonKeys...)
-			values = append(values, jsonValues...)
-			maps = json
-		case "application/x-www-form-urlencoded":
-			urlKeys, urlValues, json := extractApplicationXWwwFormUrlEncoded(context, targetId)
-			keys = append(keys, urlKeys...)
-			values = append(values, urlValues...)
-			maps = json
-		case "multipart/form-data":
-			formKeys, formValues, json := extractMultipartBodyFormData(context, targetId)
-			keys = append(keys, formKeys...)
-			values = append(values, formValues...)
-			maps = json
+	contentType := strings.ToLower(context.ContentType())
+	if len(contentType) > 0 {
+		bodyBytes, err := io.ReadAll(context.Request.Body)
+		if err != nil {
+			msg := fmt.Sprintf("Target %d: %v", targetId, err)
+			errors.WriteErrorTargetLog(msg)
+		} else {
+			context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			switch contentType {
+			case "application/json", "application/xml", "text/xml", "application/yaml":
+				jsonKeys, jsonValues, json := extractApplication(context, targetId)
+				keys = append(keys, jsonKeys...)
+				values = append(values, jsonValues...)
+				maps = json
+			case "application/x-www-form-urlencoded":
+				urlKeys, urlValues, json := extractApplicationXWwwFormUrlEncoded(context, targetId)
+				keys = append(keys, urlKeys...)
+				values = append(values, urlValues...)
+				maps = json
+			case "multipart/form-data":
+				formKeys, formValues, json := extractMultipartBodyFormData(context, targetId)
+				keys = append(keys, formKeys...)
+				values = append(values, formValues...)
+				maps = json
+			}
+			context.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		}
 	}
 	return keys, values, maps
