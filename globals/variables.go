@@ -14,20 +14,24 @@ var (
 	}
 
 	ServerVars = DictString{
-		"tls.enable":    os.Getenv("DEFENDER_SERVER_TLS_ENABLE"),
-		"tls.key":       os.Getenv("DEFENDER_SERVER_TLS_KEY"),
-		"tls.crt":       os.Getenv("DEFENDER_SERVER_TLS_CRT"),
-		"host":          os.Getenv("DEFENDER_SERVER_HOST"),
-		"port":          os.Getenv("DEFENDER_SERVER_PORT"),
-		"prefix":        os.Getenv("DEFENDER_SERVER_PREFIX"),
-		"health":        os.Getenv("DEFENDER_SERVER_HEALTH"),
-		"health.method": os.Getenv("DEFENDER_SERVER_HEALTH_METHOD"),
-		"sync":          os.Getenv("DEFENDER_SERVER_SYNC"),
-		"sync.method":   os.Getenv("DEFENDER_SERVER_SYNC_METHOD"),
-		"apply":         os.Getenv("DEFENDER_SERVER_APPLY"),
-		"apply.method":  os.Getenv("DEFENDER_SERVER_APPLY_METHOD"),
-		"revoke":        os.Getenv("DEFENDER_SERVER_REVOKE"),
-		"revoke.method": os.Getenv("DEFENDER_SERVER_REVOKE_METHOD"),
+		"tls.enable":       os.Getenv("DEFENDER_SERVER_TLS_ENABLE"),
+		"tls.key":          os.Getenv("DEFENDER_SERVER_TLS_KEY"),
+		"tls.crt":          os.Getenv("DEFENDER_SERVER_TLS_CRT"),
+		"host":             os.Getenv("DEFENDER_SERVER_HOST"),
+		"port":             os.Getenv("DEFENDER_SERVER_PORT"),
+		"prefix":           os.Getenv("DEFENDER_SERVER_PREFIX"),
+		"health":           os.Getenv("DEFENDER_SERVER_HEALTH"),
+		"health.method":    os.Getenv("DEFENDER_SERVER_HEALTH_METHOD"),
+		"sync":             os.Getenv("DEFENDER_SERVER_SYNC"),
+		"sync.method":      os.Getenv("DEFENDER_SERVER_SYNC_METHOD"),
+		"apply":            os.Getenv("DEFENDER_SERVER_APPLY"),
+		"apply.method":     os.Getenv("DEFENDER_SERVER_APPLY_METHOD"),
+		"revoke":           os.Getenv("DEFENDER_SERVER_REVOKE"),
+		"revoke.method":    os.Getenv("DEFENDER_SERVER_REVOKE_METHOD"),
+		"implement":        os.Getenv("DEFENDER_SERVER_IMPLEMENT"),
+		"implement.method": os.Getenv("DEFENDER_SERVER_IMPLEMENT_METHOD"),
+		"suspend":          os.Getenv("DEFENDER_SERVER_SUSPEND"),
+		"suspend.method":   os.Getenv("DEFENDER_SERVER_SUSPEND_METHOD"),
 	}
 
 	SecurityVars = DictString{

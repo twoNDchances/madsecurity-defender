@@ -1,4 +1,4 @@
-package apply
+package implement
 
 import (
 	"errors"
@@ -12,44 +12,36 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Apply(context *gin.Context) {
-	var responseApiForm globals.Application
+func Implement(context *gin.Context) {
+	var responseApiForm globals.Implementation
 	if err := context.ShouldBindBodyWithJSON(&responseApiForm); err != nil {
 		abort.BadRequest(context, err.Error())
 		return
 	}
 	var wg sync.WaitGroup
-	wg.Add(5)
-	go inmemory.Add(&wg, &globals.Groups, responseApiForm.Groups)
-	go inmemory.Add(&wg, &globals.Rules, responseApiForm.Rules)
-	go inmemory.Add(&wg, &globals.Targets, responseApiForm.Targets)
+	wg.Add(3)
+	go inmemory.Add(&wg, &globals.Decisions, responseApiForm.Decisions)
 	go inmemory.Add(&wg, &globals.Wordlists, responseApiForm.Wordlists)
 	go inmemory.Add(&wg, &globals.Words, responseApiForm.Words)
 	data := make(gin.H, 0)
 	var (
-		groups    int64
-		rules     int64
-		targets   int64
+		decisions int64
 		wordlists int64
 		words     int64
 		errs      globals.ListError
 	)
 	if globals.StorageConfigs.Type == "redis" {
-		wg.Add(5)
-		go inredis.Add(&wg, responseApiForm.Groups, "groups", &groups, &errs)
-		go inredis.Add(&wg, responseApiForm.Rules, "rules", &rules, &errs)
-		go inredis.Add(&wg, responseApiForm.Targets, "targets", &targets, &errs)
+		wg.Add(3)
+		go inredis.Add(&wg, responseApiForm.Decisions, "decisions", &decisions, &errs)
 		go inredis.Add(&wg, responseApiForm.Wordlists, "wordlists", &wordlists, &errs)
 		go inredis.Add(&wg, responseApiForm.Words, "words", &words, &errs)
 	}
 	wg.Wait()
-	responseApiForm = globals.Application{}
+	responseApiForm = globals.Implementation{}
 	switch globals.StorageConfigs.Type {
 	case "memory":
 		data = gin.H{
-			"group":    len(globals.Groups),
-			"rule":     len(globals.Rules),
-			"target":   len(globals.Targets),
+			"decision": len(globals.Decisions),
 			"wordlist": len(globals.Wordlists),
 			"word":     len(globals.Words),
 		}
@@ -59,18 +51,10 @@ func Apply(context *gin.Context) {
 			return
 		}
 		data = gin.H{
-			"group":    groups,
-			"rule":     rules,
-			"target":   targets,
+			"decision": decisions,
 			"wordlist": wordlists,
 			"word":     words,
 		}
 	}
-	tmpListGroups := make([]globals.Group, 0)
-	for _, group := range globals.Groups {
-		tmpListGroups = append(tmpListGroups, group)
-	}
-	globals.ListGroups = tmpListGroups
-	globals.SortGroup(globals.ListGroups)
-	complete.OK(context, "applied", data)
+	complete.OK(context, "implemented", data)
 }

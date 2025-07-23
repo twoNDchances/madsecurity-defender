@@ -27,16 +27,20 @@ var methods = ListString{
 }
 
 type Server struct {
-	Entry        Entry
-	Prefix       string
-	Health       string
-	HealthMethod string
-	Sync         string
-	SyncMethod   string
-	Apply        string
-	ApplyMethod  string
-	Revoke       string
-	RevokeMethod string
+	Entry           Entry
+	Prefix          string
+	Health          string
+	HealthMethod    string
+	Sync            string
+	SyncMethod      string
+	Apply           string
+	ApplyMethod     string
+	Revoke          string
+	RevokeMethod    string
+	Implement       string
+	ImplementMethod string
+	Suspend         string
+	SuspendMethod   string
 }
 
 func (p *Server) Validate() ListError {
@@ -45,8 +49,12 @@ func (p *Server) Validate() ListError {
 		p.validateHost(),
 		p.validatePort(),
 		p.validatePath(),
+		p.validateMethod("sync"),
+		p.validateMethod("health"),
 		p.validateMethod("apply"),
 		p.validateMethod("revoke"),
+		p.validateMethod("implement"),
+		p.validateMethod("suspend"),
 	); len(errors) > 0 {
 		return errors
 	}
@@ -115,11 +123,13 @@ func (s *Server) validatePort() error {
 
 func (s *Server) validatePath() error {
 	paths := DictString{
-		"Prefix": s.Prefix,
-		"Health": s.Health,
-		"Sync":   s.Sync,
-		"Apply":  s.Apply,
-		"Revoke": s.Revoke,
+		"Prefix":    s.Prefix,
+		"Health":    s.Health,
+		"Sync":      s.Sync,
+		"Apply":     s.Apply,
+		"Revoke":    s.Revoke,
+		"Implement": s.Implement,
+		"Suspend":   s.Suspend,
 	}
 	for name, path := range paths {
 		if name == "Prefix" && len(path) == 0 {
@@ -151,7 +161,17 @@ func (s *Server) validateMethod(route string) error {
 	}
 	if route == "revoke" {
 		if !slices.Contains(methods, strings.ToLower(s.RevokeMethod)) {
-			return utils.NewServerError("Apply.Method", errorMsg)
+			return utils.NewServerError("Revoke.Method", errorMsg)
+		}
+	}
+	if route == "implement" {
+		if !slices.Contains(methods, strings.ToLower(s.ImplementMethod)) {
+			return utils.NewServerError("Implement.Method", errorMsg)
+		}
+	}
+	if route == "suspend" {
+		if !slices.Contains(methods, strings.ToLower(s.SuspendMethod)) {
+			return utils.NewServerError("Suspend.Method", errorMsg)
 		}
 	}
 	return nil

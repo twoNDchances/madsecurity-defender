@@ -46,6 +46,16 @@ func RouteServer(router *gin.Engine) {
 				path:    globals.ServerConfigs.Revoke,
 				handler: controllers.ReturnRevocation,
 			},
+			{
+				method:  globals.ServerConfigs.ImplementMethod,
+				path:    globals.ServerConfigs.Implement,
+				handler: controllers.ReturnImplementation,
+			},
+			{
+				method:  globals.ServerConfigs.SuspendMethod,
+				path:    globals.ServerConfigs.Suspend,
+				handler: controllers.ReturnSuspension,
+			},
 		}
 		for _, route := range routes {
 			switch strings.ToLower(route.method) {

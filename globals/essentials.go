@@ -17,6 +17,7 @@ var (
 	Targets   = make(map[uint]Target, 0)
 	Wordlists = make(map[uint]Wordlist, 0)
 	Words     = make(map[uint]Word, 0)
+	Decisions = make(map[uint]Decision, 0)
 
 	BackendConfigs  *Backend
 	LogConfigs      *Log

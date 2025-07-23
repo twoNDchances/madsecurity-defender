@@ -3,7 +3,9 @@ package controllers
 import (
 	"madsecurity-defender/services/controllers/server/apply"
 	"madsecurity-defender/services/controllers/server/health"
+	"madsecurity-defender/services/controllers/server/implement"
 	"madsecurity-defender/services/controllers/server/revoke"
+	"madsecurity-defender/services/controllers/server/suspend"
 	"madsecurity-defender/services/controllers/server/sync"
 
 	"github.com/gin-gonic/gin"
@@ -23,4 +25,12 @@ func ReturnApplication(context *gin.Context) {
 
 func ReturnRevocation(context *gin.Context) {
 	revoke.Revoke(context)
+}
+
+func ReturnImplementation(context *gin.Context) {
+	implement.Implement(context)
+}
+
+func ReturnSuspension(context *gin.Context) {
+	suspend.Suspend(context)
 }

@@ -16,6 +16,18 @@ type Revocation struct {
 	Words     ListUint `json:"words"`
 }
 
+type Implementation struct {
+	Decisions []Decision `json:"decisions"`
+	Wordlists []Wordlist `json:"wordlists"`
+	Words     []Word     `json:"words"`
+}
+
+type Suspension struct {
+	Decisions ListUint `json:"decisions"`
+	Wordlists ListUint `json:"wordlists"`
+	Words     ListUint `json:"words"`
+}
+
 // ##############################################
 // ##############################################
 // ##############################################
@@ -118,4 +130,22 @@ type Word struct {
 
 func (w Word) GetID() uint {
 	return w.ID
+}
+
+// ##############################################
+// ##############################################
+// ##############################################
+
+type Decision struct {
+	ID                  uint    `json:"id"`
+	Name                string  `json:"name"`
+	PhaseType           string  `json:"phase_type"`
+	Score               int     `json:"score"`
+	Action              string  `json:"action"`
+	ActionConfiguration *string `json:"action_configuration"`
+	WordlistID          *uint   `json:"wordlist_id"`
+}
+
+func (d Decision) GetID() uint {
+	return d.ID
 }
