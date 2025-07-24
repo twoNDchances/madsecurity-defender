@@ -32,3 +32,7 @@ func WriteErrorActionLog(msg string) {
 func WriteErrorLogisticLog(msg string) {
 	writeError(msg, globals.ListString{"Proxy", "Rule", "Logistic"}...)
 }
+
+func WriteErrorDecisionLog(msg string) {
+	writeError(msg, globals.ListString{"Proxy", "Decision"}...)
+}

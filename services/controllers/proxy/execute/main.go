@@ -127,5 +127,10 @@ func Execute(context any, contextGin *gin.Context) bool {
 			}
 		}
 	}
+	if len(globals.Decisions) > 0 {
+		for _, decision := range globals.Decisions {
+			
+		}
+	}
 	return contextGin.GetInt("current_score") < contextGin.GetInt("violation_score")
 }

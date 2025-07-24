@@ -29,7 +29,7 @@ func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 		errors.WriteErrorActionLog(msg)
 		return true, false, false
 	}
-	var currentlyScore int
+	currentlyScore := context.GetInt("current_score")
 	switch *rule.Severity {
 	case "notice":
 		currentlyScore = currentlyScore + globals.ProxyConfigs.Severity.NOTICE
@@ -52,6 +52,8 @@ func Request(context any, targetPath []globals.Target, target any, rule *globals
 	}
 	options := strings.SplitN(*rule.ActionConfiguration, ",", 2)
 	if len(options) != 2 {
+		msg := fmt.Sprintf("Rule %d: not enough options for Request action", rule.ID)
+		errors.WriteErrorActionLog(msg)
 		return true, false, false
 	}
 	methods := globals.ListString{"post", "put", "patch", "delete"}
