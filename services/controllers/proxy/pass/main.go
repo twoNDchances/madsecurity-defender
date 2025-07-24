@@ -23,7 +23,7 @@ func Pass(context *gin.Context) {
 		request.Header = context.Request.Header.Clone()
 	}
 	proxy.ModifyResponse = func(response *http.Response) error {
-		if !execute.Execute(response, context) {
+		if result, _ := execute.Execute(response, context); !result {
 			abort.Forbidden(response)
 		}
 		return nil

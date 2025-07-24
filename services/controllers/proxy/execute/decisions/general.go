@@ -20,7 +20,10 @@ func Deny(context *gin.Context, decision *globals.Decision) (bool, bool, bool, b
 	return true, false, true, true
 }
 
-func Suspect(context any, decision *globals.Decision) (bool, bool, bool, bool) {
+func Suspect(context any, contextGin *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
+	if contextGin.GetInt("current_score") < decision.Score {
+		return false, true, false, true
+	}
 	switch context.(type) {
 	case *gin.Context:
 	case *http.Response:
@@ -29,6 +32,9 @@ func Suspect(context any, decision *globals.Decision) (bool, bool, bool, bool) {
 }
 
 func Redirect(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
+	if context.GetInt("current_score") < decision.Score {
+		return false, true, false, true
+	}
 	if decision.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Decision %d: missing Action Configuration for Redirect action", decision.ID)
 		errors.WriteErrorDecisionLog(msg)
@@ -52,7 +58,10 @@ func Redirect(context *gin.Context, decision *globals.Decision) (bool, bool, boo
 	return true, false, true, false
 }
 
-func Kill(decision *globals.Decision) (bool, bool, bool, bool) {
+func Kill(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
+	if context.GetInt("current_score") < decision.Score {
+		return false, true, false, true
+	}
 	if decision.ActionConfiguration == nil {
 		msg := fmt.Sprintf("Decision %d: missing Action Configuration for Kill action", decision.ID)
 		errors.WriteErrorDecisionLog(msg)
@@ -90,6 +99,9 @@ func Kill(decision *globals.Decision) (bool, bool, bool, bool) {
 }
 
 func Tag(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
+	if context.GetInt("current_score") < decision.Score {
+		return false, true, false, true
+	}
 	if decision.WordlistID == nil {
 		msg := fmt.Sprintf("Decision %d: missing Wordlist ID for Tag action", decision.ID)
 		errors.WriteErrorDecisionLog(msg)

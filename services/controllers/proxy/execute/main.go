@@ -5,8 +5,10 @@ import (
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/actions"
 	"madsecurity-defender/services/controllers/proxy/execute/comparators"
+	"madsecurity-defender/services/controllers/proxy/execute/decisions"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/logistics"
+	"madsecurity-defender/services/controllers/proxy/execute/payloads"
 	"madsecurity-defender/services/controllers/proxy/execute/targets"
 	"net/http"
 	"slices"
@@ -20,7 +22,7 @@ type actionCallback struct {
 	rule        *globals.Rule
 }
 
-func Execute(context any, contextGin *gin.Context) bool {
+func Execute(context any, contextGin *gin.Context) (bool, bool) {
 	groupProcessed := make(globals.ListUint, 0)
 	retry := true
 	for retry {
@@ -110,13 +112,14 @@ func Execute(context any, contextGin *gin.Context) bool {
 							actionCallback.targetValue,
 							&actionCallback.targetPath,
 							actionCallback.rule,
+							nil,
 						); err != nil {
 							msg := fmt.Sprintf("Rule %d: %v", actionCallback.rule.ID, err)
 							errors.WriteErrorLogisticLog(msg)
 						}
 					}
 					if forceReturn {
-						return result
+						return result, true
 					}
 				}
 			}
@@ -128,9 +131,51 @@ func Execute(context any, contextGin *gin.Context) bool {
 		}
 	}
 	if len(globals.Decisions) > 0 {
+		var (
+			forceReturn bool
+			result      bool
+			audit       bool
+			render      bool
+		)
 		for _, decision := range globals.Decisions {
-			
+			switch context.(type) {
+			case *gin.Context:
+				if decision.PhaseType == "response" {
+					continue
+				}
+			case *http.Response:
+				if decision.PhaseType == "request" {
+					continue
+				}
+			}
+			forceReturn, result, audit, render = decisions.Perform(context, contextGin, &decision)
+			if audit {
+				logistic := logistics.NewJudgement()
+				var (
+					phase string
+					err   error
+				)
+				switch ctx := context.(type) {
+				case *gin.Context:
+					phase, err = payloads.GetFullPhase(ctx)
+				case *http.Response:
+					phase, err = payloads.GetFullPhase(ctx)
+				}
+				if err != nil {
+					msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+					errors.WriteErrorDecisionLog(msg)
+				} else {
+					if err := logistic.Write(context, phase, nil, nil, &decision); err != nil {
+						msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+						errors.WriteErrorLogisticLog(msg)
+					}
+				}
+			}
+			if forceReturn {
+				return result, render
+			}
 		}
+		return result, render
 	}
-	return contextGin.GetInt("current_score") < contextGin.GetInt("violation_score")
+	return contextGin.GetInt("current_score") < contextGin.GetInt("violation_score"), false
 }

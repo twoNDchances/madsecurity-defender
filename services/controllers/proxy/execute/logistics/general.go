@@ -21,6 +21,7 @@ type Logistic struct {
 	Output    bool
 	Target    bool
 	Rule      bool
+	Decision  bool
 }
 
 func (l *Logistic) build() globals.DictAny {
@@ -52,7 +53,7 @@ func (l *Logistic) build() globals.DictAny {
 	return data
 }
 
-func (l *Logistic) generate(context any, output any, targets *[]globals.Target, rule *globals.Rule) globals.DictAny {
+func (l *Logistic) generate(context any, output any, targets *[]globals.Target, rule *globals.Rule, decision *globals.Decision) globals.DictAny {
 	content := l.build()
 	if l.Time {
 		content["time"] = time.Now().Format(utils.TimeStampLayout)
@@ -89,40 +90,49 @@ func (l *Logistic) generate(context any, output any, targets *[]globals.Target, 
 		content["output"] = output
 	}
 	if l.Target {
-		var targetValues []globals.DictAny
-		for _, target := range *targets {
-			targetValues = append(targetValues, globals.DictAny{
-				"name": target.Name,
-				"alias": target.Alias,
-				"type": target.Type,
-				"datatype": target.Datatype,
-				"engine": target.Engine,
-				"engine_configuration": target.EngineConfiguration,
-				"final_datatype": target.FinalDatatype,
-				"wordlist_id": target.WordlistID,
-			})
+		if targets != nil {
+			var targetValues []globals.DictAny
+			for _, target := range *targets {
+				targetValues = append(targetValues, globals.DictAny{
+					"name":                 target.Name,
+					"alias":                target.Alias,
+					"type":                 target.Type,
+					"datatype":             target.Datatype,
+					"engine":               target.Engine,
+					"engine_configuration": target.EngineConfiguration,
+					"final_datatype":       target.FinalDatatype,
+					"wordlist_id":          target.WordlistID,
+				})
+			}
+			content["target"] = targetValues
 		}
-		content["target"] = targetValues
 	}
 	if l.Rule {
-		content["rule"] = globals.DictAny{
-			"name": rule.Name,
-			"alias": rule.Alias,
-			"comparator": rule.Comparator,
-			"inverse": rule.Inverse,
-			"value": rule.Value,
-			"wordlist_id": rule.WordlistID,
-			"action": rule.Action,
-			"action_configuration": rule.ActionConfiguration,
-			"severity": rule.Severity,
+		if rule != nil {
+			content["rule"] = globals.DictAny{
+				"name":                 rule.Name,
+				"alias":                rule.Alias,
+				"comparator":           rule.Comparator,
+				"inverse":              rule.Inverse,
+				"value":                rule.Value,
+				"wordlist_id":          rule.WordlistID,
+				"action":               rule.Action,
+				"action_configuration": rule.ActionConfiguration,
+				"severity":             rule.Severity,
+			}
+		}
+	}
+	if l.Decision {
+		if decision != nil {
+
 		}
 	}
 	return content
 }
 
-func (l *Logistic) Write(context any, output any, targets *[]globals.Target, rule *globals.Rule) error {
+func (l *Logistic) Write(context any, output any, targets *[]globals.Target, rule *globals.Rule, decision *globals.Decision) error {
 	if l.Enable {
-		content := l.generate(context, output, targets, rule)
+		content := l.generate(context, output, targets, rule, decision)
 		data, err := json.Marshal(content)
 		if err != nil {
 			return err
@@ -145,6 +155,23 @@ func NewLogistic(rule *globals.Rule) *Logistic {
 		Output:    rule.Output,
 		Target:    rule.Target,
 		Rule:      rule.Rule,
+		Decision:  false,
+	}
+	return &logistic
+}
+
+func NewJudgement() *Logistic {
+	logistic := Logistic{
+		Enable:    true,
+		Time:      true,
+		UserAgent: true,
+		ClientIP:  true,
+		Method:    true,
+		Path:      true,
+		Output:    true,
+		Target:    false,
+		Rule:      false,
+		Decision:  true,
 	}
 	return &logistic
 }

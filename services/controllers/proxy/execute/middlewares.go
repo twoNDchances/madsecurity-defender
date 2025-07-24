@@ -12,8 +12,13 @@ func Investigate() gin.HandlerFunc {
 		context.Set("violation_level", uint(globals.ProxyConfigs.ViolationLevel))
 		context.Set("current_score", 0)
 		context.Set("violation_score", globals.ProxyConfigs.ViolationScore)
-		if !Execute(context, context) {
-			abort.Forbidden(context)
+		result, render := Execute(context, context)
+		if !result {
+			if !render {
+				context.Abort()
+			} else {
+				abort.Forbidden(context)
+			}
 			return
 		}
 		context.Next()
