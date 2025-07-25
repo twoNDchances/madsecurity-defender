@@ -2,6 +2,7 @@ package decisions
 
 import (
 	"madsecurity-defender/globals"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,8 +17,6 @@ func Perform(context any, contextGin *gin.Context, decision *globals.Decision) (
 	switch decision.Action {
 	case "deny":
 		forceReturn, result, audit, render = Deny(contextGin, decision)
-	case "suspect":
-		forceReturn, result, audit, render = Suspect(context, contextGin, decision)
 	}
 	switch decision.PhaseType {
 	case "request":
@@ -31,6 +30,10 @@ func Perform(context any, contextGin *gin.Context, decision *globals.Decision) (
 		}
 	case "response":
 		switch decision.Action {
+		case "warn":
+			forceReturn, result, audit, render = Warn(context.(*http.Response), contextGin, decision)
+		case "bait":
+			forceReturn, result, audit, render = Bait(context.(*http.Response), contextGin, decision)
 		}
 	}
 	return forceReturn, result, audit, render

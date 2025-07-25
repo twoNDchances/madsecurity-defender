@@ -124,7 +124,13 @@ func (l *Logistic) generate(context any, output any, targets *[]globals.Target, 
 	}
 	if l.Decision {
 		if decision != nil {
-
+			content["decision"] = globals.DictAny{
+				"name":                 decision.Name,
+				"phase_type":           decision.PhaseType,
+				"score":                decision.Score,
+				"action":               decision.Action,
+				"action_configuration": decision.ActionConfiguration,
+			}
 		}
 	}
 	return content

@@ -20,19 +20,8 @@ func Deny(context *gin.Context, decision *globals.Decision) (bool, bool, bool, b
 	return true, false, true, true
 }
 
-func Suspect(context any, contextGin *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
-	if contextGin.GetInt("current_score") < decision.Score {
-		return false, true, false, true
-	}
-	switch context.(type) {
-	case *gin.Context:
-	case *http.Response:
-	}
-	return false, true, false, true
-}
-
 func Redirect(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
-	if context.GetInt("current_score") < decision.Score {
+	if decision.PhaseType != "request" || context.GetInt("current_score") < decision.Score {
 		return false, true, false, true
 	}
 	if decision.ActionConfiguration == nil {
@@ -50,7 +39,7 @@ func Redirect(context *gin.Context, decision *globals.Decision) (bool, bool, boo
 	proxy.Director = func(request *http.Request) {
 		request.URL.Scheme = remote.Scheme
 		request.URL.Host = remote.Host
-		request.URL.Path = remote.Path
+		request.URL.Path = fmt.Sprintf("%s%s", globals.BackendConfigs.Path, context.Param("backendPath"))
 		request.Host = remote.Host
 		request.Header = context.Request.Header.Clone()
 	}
@@ -59,7 +48,7 @@ func Redirect(context *gin.Context, decision *globals.Decision) (bool, bool, boo
 }
 
 func Kill(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
-	if context.GetInt("current_score") < decision.Score {
+	if decision.PhaseType != "request" || context.GetInt("current_score") < decision.Score {
 		return false, true, false, true
 	}
 	if decision.ActionConfiguration == nil {
@@ -99,7 +88,7 @@ func Kill(context *gin.Context, decision *globals.Decision) (bool, bool, bool, b
 }
 
 func Tag(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
-	if context.GetInt("current_score") < decision.Score {
+	if decision.PhaseType != "request" || context.GetInt("current_score") < decision.Score {
 		return false, true, false, true
 	}
 	if decision.WordlistID == nil {
@@ -121,6 +110,20 @@ func Tag(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bo
 	}
 	for key, value := range headers {
 		context.Request.Header.Set(key, value)
+	}
+	return false, true, true, true
+}
+
+func Warn(context *http.Response, contextGin *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
+	if decision.PhaseType != "response" || contextGin.GetInt("current_score") < decision.Score {
+		return false, true, false, true
+	}
+	return false, true, true, true
+}
+
+func Bait(context *http.Response, contextGin *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
+	if decision.PhaseType != "response" || contextGin.GetInt("current_score") < decision.Score {
+		return false, true, false, true
 	}
 	return false, true, true, true
 }

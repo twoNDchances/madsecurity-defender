@@ -130,12 +130,16 @@ func Execute(context any, contextGin *gin.Context) (bool, bool) {
 			}
 		}
 	}
+	return judge(context, contextGin)
+}
+
+func judge(context any, contextGin *gin.Context) (bool, bool) {
 	if len(globals.Decisions) > 0 {
 		var (
-			forceReturn bool
-			result      bool
-			audit       bool
-			render      bool
+			forceReturn bool = false
+			result      bool = true
+			audit       bool = false
+			render      bool = true
 		)
 		for _, decision := range globals.Decisions {
 			switch context.(type) {
@@ -177,5 +181,5 @@ func Execute(context any, contextGin *gin.Context) (bool, bool) {
 		}
 		return result, render
 	}
-	return contextGin.GetInt("current_score") < contextGin.GetInt("violation_score"), false
+	return contextGin.GetInt("current_score") < contextGin.GetInt("violation_score"), true
 }

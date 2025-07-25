@@ -80,12 +80,13 @@ func (r *RedisStorage) assignValue() error {
 		wg sync.WaitGroup
 		errs ListError
 	)
-	wg.Add(5)
+	wg.Add(6)
 	go r.getAndSetValue(&wg, "groups", &errs)
 	go r.getAndSetValue(&wg, "rules", &errs)
 	go r.getAndSetValue(&wg, "targets", &errs)
 	go r.getAndSetValue(&wg, "wordlists", &errs)
 	go r.getAndSetValue(&wg, "words", &errs)
+	go r.getAndSetValue(&wg, "decisions", &errs)
 	wg.Wait()
 	if len(errs) > 0 {
 		return utils.NewServerError("Storage.Redis", errors.Join(errs...).Error())
@@ -139,6 +140,13 @@ func (r *RedisStorage) getAndSetValue(wg *sync.WaitGroup, structName string, err
 				continue
 			}
 			Words[word.ID] = word
+		} else if structName == "decisions" {
+			var decision Decision
+			if err := json.Unmarshal([]byte(r), &decision); err != nil {
+				*errors = append(*errors, err)
+				continue
+			}
+			Decisions[decision.ID] = decision
 		}
 	}
 }
