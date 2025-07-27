@@ -118,6 +118,18 @@ func Warn(context *http.Response, contextGin *gin.Context, decision *globals.Dec
 	if decision.PhaseType != "response" || contextGin.GetInt("current_score") < decision.Score {
 		return false, true, false, true
 	}
+	valueConfigs := getValueConfig(*decision.WordlistID)
+	for _, config := range *valueConfigs {
+		if config.kind != "header" {
+			continue
+		}
+		context.Header.Set(config.aim, config.value)
+	}
+	if err := assignValueToResponseBody(context, decision); err != nil {
+		msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+		errors.WriteErrorDecisionLog(msg)
+		return true, false, false, true
+	}
 	return false, true, true, true
 }
 

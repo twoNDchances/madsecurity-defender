@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -26,4 +27,8 @@ func ToFloat64(value string) (float64, error) {
 		return 0, err
 	}
 	return number, nil
+}
+
+func ToError(value string) error {
+	return errors.New(value)
 }
