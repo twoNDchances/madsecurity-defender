@@ -1,17 +1,23 @@
 package decisions
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
-	"madsecurity-defender/services/controllers/proxy/execute/payloads"
 	"madsecurity-defender/utils"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
+	"github.com/clbanning/mxj/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/sjson"
+	"gopkg.in/yaml.v3"
 )
 
 func Deny(context *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
@@ -119,25 +125,122 @@ func Warn(context *http.Response, contextGin *gin.Context, decision *globals.Dec
 	if decision.PhaseType != "response" || contextGin.GetInt("current_score") < decision.Score {
 		return false, true, false, true
 	}
-	valueConfigs := getValueConfig(*decision.WordlistID)
-	for _, config := range *valueConfigs {
-		if config.kind != "header" {
+	if context.StatusCode == 302 {
+		return false, true, false, true
+	}
+	if decision.WordlistID == nil {
+		msg := fmt.Sprintf("Decision %d: missing Wordlist ID for Warn action", decision.ID)
+		errors.WriteErrorDecisionLog(msg)
+		return true, false, false, true
+	}
+	aimConfigs := make([]globals.DictString, 0)
+	for _, word := range globals.Words {
+		if word.WordlistID != *decision.WordlistID {
 			continue
 		}
-		context.Header.Set(config.aim, config.value)
+		configs := strings.SplitN(word.Content, "@>", 3)
+		if len(configs) != 3 {
+			continue
+		}
+		aimConfigs = append(aimConfigs, globals.DictString{
+			"type": configs[0],
+			"aim": configs[1],
+			"value": configs[2],
+		})
 	}
-	if err := assignValueToResponseBody(context, decision); err != nil {
+	for _, config := range aimConfigs {
+		if config["type"] != "header" {
+			continue
+		}
+		context.Header.Set(config["aim"], config["value"])
+	}
+	kind, data, err := utils.GetResponseBodyContentType(context)
+	if err != nil {
 		msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
 		errors.WriteErrorDecisionLog(msg)
 		return true, false, false, true
 	}
-	// fmt.Println(payloads.GetFullPhase(context))
-	return false, true, true, true
-}
-
-func Bait(context *http.Response, contextGin *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
-	if decision.PhaseType != "response" || contextGin.GetInt("current_score") < decision.Score {
+	if kind == "" {
 		return false, true, false, true
+	}
+	switch kind {
+	case "json", "xml", "yaml":
+		switch d := data.(type) {
+		case map[string]interface{}:
+			jsonBytes, err := json.Marshal(d)
+			if err != nil {
+				msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+				errors.WriteErrorDecisionLog(msg)
+				return true, false, false, true
+			}
+			jsonString := string(jsonBytes)
+			for _, config := range aimConfigs {
+				if (kind == "json" && config["type"] == "json") || (kind == "xml" && config["type"] == "xml") || (kind == "yaml" && config["type"] == "yaml") {
+					jsonString, err = sjson.Set(jsonString, config["aim"], config["value"])
+					if err != nil {
+						msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+						errors.WriteErrorDecisionLog(msg)
+						return true, false, false, true
+					}
+				}
+			}
+			backbone := make(globals.DictAny, 0)
+			if err := json.Unmarshal([]byte(jsonString), &backbone); err != nil {
+				msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+				errors.WriteErrorDecisionLog(msg)
+				return true, false, false, true
+			}
+			switch kind {
+			case "xml":
+			    mv := mxj.Map(backbone)
+				xmlBytes, err := mv.Xml()
+				if  err != nil {
+					msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+					errors.WriteErrorDecisionLog(msg)
+					return true, false, false, true
+				}
+				jsonString = string(xmlBytes)
+			case "yaml":
+				yamlBytes, err := yaml.Marshal(backbone)
+				if err != nil {
+					msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+					errors.WriteErrorDecisionLog(msg)
+					return true, false, false, true
+				}
+				jsonString = string(yamlBytes)
+			}
+			context.ContentLength = int64(len(jsonString))
+			context.Body = io.NopCloser(bytes.NewReader([]byte(jsonString)))
+		}
+	case "html":
+		switch d := data.(type) {
+		case string:
+			reader := strings.NewReader(d)
+			document, err := goquery.NewDocumentFromReader(reader)
+			if err != nil {
+				msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+				errors.WriteErrorDecisionLog(msg)
+				return true, false, false, true
+			}
+			for _, config := range aimConfigs {
+				if kind == "html" && config["type"] == "html" {
+					document.Find(config["aim"]).AppendHtml(config["value"])
+				}
+			}
+			htmlString, err := document.Html()
+			if err != nil {
+				msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+				errors.WriteErrorDecisionLog(msg)
+				return true, false, false, true
+			}
+			context.ContentLength = int64(len(htmlString))
+			context.Body = io.NopCloser(bytes.NewReader([]byte(htmlString)))
+		}
+	}
+	if err:= utils.EncodeResponseBody(context); err != nil {
+		msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
+		errors.WriteErrorDecisionLog(msg)
+		return true, false, false, true
 	}
 	return false, true, true, true
 }

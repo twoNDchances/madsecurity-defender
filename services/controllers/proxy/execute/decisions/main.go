@@ -32,8 +32,6 @@ func Perform(context any, contextGin *gin.Context, decision *globals.Decision) (
 		switch decision.Action {
 		case "warn":
 			forceReturn, result, audit, render = Warn(context.(*http.Response), contextGin, decision)
-		case "bait":
-			forceReturn, result, audit, render = Bait(context.(*http.Response), contextGin, decision)
 		}
 	}
 	return forceReturn, result, audit, render

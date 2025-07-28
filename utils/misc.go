@@ -95,7 +95,6 @@ func EncodeResponseBody(context *http.Response) error {
 	if err != nil {
 		return err
 	}
-	context.Body.Close()
 	contentEncoding := strings.ToLower(context.Header.Get("Content-Encoding"))
 	switch contentEncoding {
 	case "gzip":
@@ -155,7 +154,7 @@ func GetResponseBodyContentType(context *http.Response) (string, any, error) {
 	formatRegex := regexp.MustCompile(`(?i)\b(json|xml|yaml|html)\b`)
 	match := formatRegex.FindStringSubmatch(mediaType)
 	if len(match) < 2 {
-		return "", nil, ToError("")
+		return "", nil, nil
 	}
 	bodyBytes, err := DecodeResponseBody(context)
 	if err != nil {
