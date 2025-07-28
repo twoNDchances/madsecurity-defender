@@ -9,10 +9,10 @@ import (
 
 func Perform(context any, contextGin *gin.Context, decision *globals.Decision) (bool, bool, bool, bool) {
 	var (
-		forceReturn bool
-		result      bool
-		audit       bool
-		render      bool
+		forceReturn bool = false
+		result      bool = true
+		audit       bool = false
+		render      bool = true
 	)
 	switch decision.Action {
 	case "deny":

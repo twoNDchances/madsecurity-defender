@@ -96,7 +96,6 @@ func assignValueToResponseBody(context *http.Response, decision *globals.Decisio
 			reader := strings.NewReader(d)
 			document, err := goquery.NewDocumentFromReader(reader)
 			if err != nil {
-				fmt.Println(err)
 				return err
 			}
 			for _, config := range *valueConfigs {
@@ -106,23 +105,14 @@ func assignValueToResponseBody(context *http.Response, decision *globals.Decisio
 			}
 			htmlString, err := document.Html()
 			if err != nil {
-				fmt.Println(err)
 				return err
 			}
 			context.ContentLength = int64(len(htmlString))
 			context.Body = io.NopCloser(bytes.NewReader([]byte(htmlString)))
 		}
 	}
-	// if err := utils.EncodeResponseBody(context); err != nil {
-	// 	fmt.Println(err)
-	// 	return err
-	// }
-	bodyBytes, _ := io.ReadAll(context.Body)
-	bodyEncoded, err := utils.EncodeResponseBody(bodyBytes, context.Header.Get("Content-Encoding"))
-	if err != nil {
+	if err := utils.EncodeResponseBody(context); err != nil {
 		return err
 	}
-	fmt.Println(string(bodyEncoded))
-	context.Body = io.NopCloser(bytes.NewReader(bodyEncoded))
 	return nil
 }

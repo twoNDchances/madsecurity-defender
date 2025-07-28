@@ -6,7 +6,6 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -86,20 +85,25 @@ func DecodeResponseBody(context *http.Response) ([]byte, error) {
 	return data, nil
 }
 
-func EncodeResponseBody(respBody []byte, encoding string) ([]byte, error) {
+func EncodeResponseBody(context *http.Response) error {
 	var (
 		buf    bytes.Buffer
 		writer io.WriteCloser
 		err    error
 	)
-
-	switch strings.ToLower(encoding) {
+	bodyBytes, err := io.ReadAll(context.Body)
+	if err != nil {
+		return err
+	}
+	context.Body.Close()
+	contentEncoding := strings.ToLower(context.Header.Get("Content-Encoding"))
+	switch contentEncoding {
 	case "gzip":
 		writer = gzip.NewWriter(&buf)
 	case "deflate":
 		writer, err = flate.NewWriter(&buf, flate.DefaultCompression)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	case "zlib":
 		writer = zlib.NewWriter(&buf)
@@ -108,32 +112,36 @@ func EncodeResponseBody(respBody []byte, encoding string) ([]byte, error) {
 	case "zstd":
 		encoder, zErr := zstd.NewWriter(&buf)
 		if zErr != nil {
-			return nil, zErr
+			return zErr
 		}
 		defer encoder.Close()
-		_, err = encoder.Write(respBody)
-		if err != nil {
-			return nil, err
+		if _, err := encoder.Write(bodyBytes); err != nil {
+			return err
 		}
-		err = encoder.Close()
-		return buf.Bytes(), err
+		if err := encoder.Close(); err != nil {
+			return err
+		}
+		context.Body = io.NopCloser(&buf)
+		context.ContentLength = int64(buf.Len())
+		context.Header.Del("Content-Length")
+		return nil
 	default:
-		return nil, fmt.Errorf("unsupported encoding: %s", encoding)
+		context.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+		context.ContentLength = int64(len(bodyBytes))
+		return nil
 	}
-
-	// defer writer.Close()
-	_, err = writer.Write(respBody)
-	if err != nil {
-		return nil, err
+	if _, err := writer.Write(bodyBytes); err != nil {
+		return err
 	}
-	// err = writer.Close()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	fmt.Println("here")
-
-	return buf.Bytes(), nil
+	if err := writer.Close(); err != nil {
+		return err
+	}
+	context.Body = io.NopCloser(&buf)
+	context.ContentLength = int64(buf.Len())
+	context.Header.Set("Content-Length", "")
+	return nil
 }
+
 
 func GetResponseBodyContentType(context *http.Response) (string, any, error) {
 	contentType := context.Header.Get("Content-Type")

@@ -8,7 +8,6 @@ import (
 	"madsecurity-defender/services/controllers/proxy/execute/decisions"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/services/controllers/proxy/execute/logistics"
-	"madsecurity-defender/services/controllers/proxy/execute/payloads"
 	"madsecurity-defender/services/controllers/proxy/execute/targets"
 	"net/http"
 	"slices"
@@ -155,24 +154,9 @@ func judge(context any, contextGin *gin.Context) (bool, bool) {
 			forceReturn, result, audit, render = decisions.Perform(context, contextGin, &decision)
 			if audit {
 				logistic := logistics.NewJudgement()
-				var (
-					phase string
-					err   error
-				)
-				switch ctx := context.(type) {
-				case *gin.Context:
-					phase, err = payloads.GetFullPhase(ctx)
-				case *http.Response:
-					phase, err = payloads.GetFullPhase(ctx)
-				}
-				if err != nil {
+				if err := logistic.Write(context, nil, nil, nil, &decision); err != nil {
 					msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
-					errors.WriteErrorDecisionLog(msg)
-				} else {
-					if err := logistic.Write(context, phase, nil, nil, &decision); err != nil {
-						msg := fmt.Sprintf("Decision %d: %v", decision.ID, err)
-						errors.WriteErrorLogisticLog(msg)
-					}
+					errors.WriteErrorLogisticLog(msg)
 				}
 			}
 			if forceReturn {

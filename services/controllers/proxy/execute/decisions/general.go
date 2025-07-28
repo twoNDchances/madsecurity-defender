@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
+	"madsecurity-defender/services/controllers/proxy/execute/payloads"
 	"madsecurity-defender/utils"
 	"net/http"
 	"net/http/httputil"
@@ -130,6 +131,7 @@ func Warn(context *http.Response, contextGin *gin.Context, decision *globals.Dec
 		errors.WriteErrorDecisionLog(msg)
 		return true, false, false, true
 	}
+	// fmt.Println(payloads.GetFullPhase(context))
 	return false, true, true, true
 }
 
