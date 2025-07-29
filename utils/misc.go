@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -43,46 +44,44 @@ func FlattenWithValues(data interface{}, prefix string, out map[string]interface
 	}
 }
 
-func DecodeResponseBody(context *http.Response) ([]byte, error) {
-	encoding := strings.ToLower(context.Header.Get("Content-Encoding"))
-	var (
-		reader io.ReadCloser
-		err    error
-	)
+func DecodeResponseBody(resp *http.Response) ([]byte, error) {
+	encoding := strings.ToLower(resp.Header.Get("Content-Encoding"))
+	rawData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	resp.Body = io.NopCloser(bytes.NewReader(rawData))
+	var reader io.Reader
 	switch encoding {
 	case "gzip":
-		reader, err = gzip.NewReader(context.Body)
+		reader, err = gzip.NewReader(bytes.NewReader(rawData))
+		if err != nil {
+			return nil, err
+		}
 	case "deflate":
-		reader = io.NopCloser(flate.NewReader(context.Body))
+		reader = flate.NewReader(bytes.NewReader(rawData))
 	case "zlib", "compress":
-		reader, err = zlib.NewReader(context.Body)
+		reader, err = zlib.NewReader(bytes.NewReader(rawData))
+		if err != nil {
+			return nil, err
+		}
 	case "br":
-		reader = io.NopCloser(brotli.NewReader(context.Body))
+		reader = brotli.NewReader(bytes.NewReader(rawData))
 	case "zstd":
-		zreader, zErr := zstd.NewReader(context.Body)
+		zreader, zErr := zstd.NewReader(bytes.NewReader(rawData))
 		if zErr != nil {
 			return nil, zErr
 		}
 		defer zreader.Close()
-		data, err := io.ReadAll(zreader)
-		if err != nil {
-			return nil, err
-		}
-		context.Body = io.NopCloser(bytes.NewReader(data))
-		return data, nil
+		return io.ReadAll(zreader)
 	default:
-		reader = context.Body
+		return rawData, nil
 	}
+	decodedData, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
 	}
-	defer reader.Close()
-	data, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
-	context.Body = io.NopCloser(bytes.NewReader(data))
-	return data, nil
+	return decodedData, nil
 }
 
 func EncodeResponseBody(context *http.Response) error {
@@ -121,8 +120,7 @@ func EncodeResponseBody(context *http.Response) error {
 			return err
 		}
 		context.Body = io.NopCloser(&buf)
-		context.ContentLength = int64(buf.Len())
-		context.Header.Del("Content-Length")
+		context.Header.Set("Content-Length", fmt.Sprint(buf.Len()))
 		return nil
 	default:
 		context.Body = io.NopCloser(bytes.NewReader(bodyBytes))
@@ -136,8 +134,7 @@ func EncodeResponseBody(context *http.Response) error {
 		return err
 	}
 	context.Body = io.NopCloser(&buf)
-	context.ContentLength = int64(buf.Len())
-	context.Header.Set("Content-Length", "")
+	context.Header.Set("Content-Length", fmt.Sprint(buf.Len()))
 	return nil
 }
 

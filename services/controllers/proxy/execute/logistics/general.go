@@ -174,7 +174,7 @@ func NewJudgement() *Logistic {
 		ClientIP:  true,
 		Method:    true,
 		Path:      true,
-		Output:    false,
+		Output:    true,
 		Target:    false,
 		Rule:      false,
 		Decision:  true,
