@@ -9,7 +9,7 @@ import (
 
 func Inspect() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		if context.RemoteIP() != globals.SecurityConfigs.ManagerHost {
+		if context.ClientIP() != globals.SecurityConfigs.ManagerHost {
 			if globals.SecurityConfigs.MaskEnable {
 				abort.Mask(context)
 			} else {

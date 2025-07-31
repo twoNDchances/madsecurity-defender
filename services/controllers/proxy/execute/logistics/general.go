@@ -64,7 +64,7 @@ func (l *Logistic) generate(context any, output any, targets *[]globals.Target, 
 			content["user_agent"] = ctx.Request.UserAgent()
 		}
 		if l.ClientIP {
-			content["client_ip"] = ctx.RemoteIP()
+			content["client_ip"] = ctx.ClientIP()
 		}
 		if l.Method {
 			content["method"] = ctx.Request.Method

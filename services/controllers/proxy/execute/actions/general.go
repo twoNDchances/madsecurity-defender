@@ -99,7 +99,7 @@ func Request(context any, targetPath []globals.Target, target any, rule *globals
 	switch ctx := context.(type) {
 	case *gin.Context:
 		body["user_agent"] = ctx.Request.UserAgent()
-		body["client_ip"] = ctx.RemoteIP()
+		body["client_ip"] = ctx.ClientIP()
 		body["method"] = ctx.Request.Method
 		body["path"] = ctx.Request.URL.Path
 	case *http.Response:
@@ -179,7 +179,7 @@ func Report(context any, group *globals.Group, targetPath []globals.Target, targ
 	switch ctx := context.(type) {
 	case *gin.Context:
 		data["user_agent"] = ctx.Request.UserAgent()
-		data["client_ip"] = ctx.RemoteIP()
+		data["client_ip"] = ctx.ClientIP()
 		data["method"] = ctx.Request.Method
 		data["path"] = ctx.Request.URL.Path
 	case *http.Response:

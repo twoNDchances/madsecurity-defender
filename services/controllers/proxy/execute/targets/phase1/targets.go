@@ -101,7 +101,7 @@ func ClientProtocol(context *gin.Context, target *globals.Target) string {
 func ClientIp(context *gin.Context, target *globals.Target) string {
 	var ip string
 	if target.Phase == 1 && target.Alias == "client-ip" && target.Name == "ip" && target.Immutable && target.TargetID == nil {
-		ip = context.RemoteIP()
+		ip = context.ClientIP()
 	}
 	return ip
 }
