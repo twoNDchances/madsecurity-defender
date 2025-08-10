@@ -2,6 +2,7 @@ package actions
 
 import (
 	"fmt"
+	"io"
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/proxy/execute/errors"
 	"madsecurity-defender/utils"
@@ -159,8 +160,8 @@ func SetLevel(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	return false, true, true
 }
 
-func Report(context any, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
-	if errs := globals.ProxyConfigs.Report.Validate(); errs != nil {
+func Record(context any, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
+	if errs := globals.ProxyConfigs.Record.Validate(); errs != nil {
 		for _, err := range errs {
 			msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 			errors.WriteErrorActionLog(msg)
@@ -189,14 +190,14 @@ func Report(context any, group *globals.Group, targetPath []globals.Target, targ
 		data["method"] = ctx.Request.Method
 		data["path"] = ctx.Request.URL.Path
 	}
-	managerAddress := fmt.Sprintf("https://%s/%s", globals.SecurityConfigs.ManagerHost, globals.ProxyConfigs.Report.ApiPath)
+	managerAddress := fmt.Sprintf("https://%s/%s", globals.SecurityConfigs.ManagerHost, globals.ProxyConfigs.Record.ApiPath)
 	request, err := utils.NewHttp(
 		"post",
 		managerAddress,
-		globals.ProxyConfigs.Report.AuthUsername,
-		globals.ProxyConfigs.Report.AuthPassword,
+		globals.ProxyConfigs.Record.AuthUsername,
+		globals.ProxyConfigs.Record.AuthPassword,
 		globals.DictString{
-			globals.ProxyConfigs.Report.ApiHeader: globals.ProxyConfigs.Report.ApiToken,
+			globals.ProxyConfigs.Record.ApiHeader: globals.ProxyConfigs.Record.ApiToken,
 		},
 		data,
 	)
@@ -211,7 +212,8 @@ func Report(context any, group *globals.Group, targetPath []globals.Target, targ
 			msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 			errors.WriteErrorActionLog(msg)
 		} else if response.StatusCode != 200 {
-			msg := fmt.Sprintf("Rule %d: Status code %d", rule.ID, response.StatusCode)
+			byteBody, _ := io.ReadAll(response.Body)
+			msg := fmt.Sprintf("Rule %d: Status code %d, body %s", rule.ID, response.StatusCode, fmt.Sprint(string(byteBody)))
 			errors.WriteErrorActionLog(msg)
 		}
 	}()
