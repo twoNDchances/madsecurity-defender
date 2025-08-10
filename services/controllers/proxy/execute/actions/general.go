@@ -108,7 +108,7 @@ func Request(context any, targetPath []globals.Target, target any, rule *globals
 		body["method"] = ctx.Request.Method
 		body["path"] = ctx.Request.URL.Path
 	}
-	request, err := utils.NewHttp(options[0], options[1], body)
+	request, err := utils.NewHttp(options[0], options[1], "", "", globals.DictString{}, body)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)
@@ -160,19 +160,20 @@ func SetLevel(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 }
 
 func Report(context any, group *globals.Group, targetPath []globals.Target, target any, rule *globals.Rule) (bool, bool, bool) {
+	if errs := globals.ProxyConfigs.Report.Validate(); errs != nil {
+		for _, err := range errs {
+			msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
+			errors.WriteErrorActionLog(msg)
+		}
+		return true, false, false
+	}
 	var targetIds globals.ListUint
 	for _, target := range targetPath {
 		targetIds = append(targetIds, target.ID)
 	}
-	body := globals.DictAny{
-		"auth": globals.DictAny{
-			"id": group.DefenderID,
-			"username": utils.FallbackWhenEmpty(&globals.SecurityConfigs.Username, nil),
-			"password": utils.FallbackWhenEmpty(&globals.SecurityConfigs.Password, nil),
-		},
-	}
 	data := make(globals.DictAny, 0)
-	data["time"] = time.Now().Format(utils.TimeStampLayout)
+	data["defender_id"] = group.DefenderID
+	data["time"] = time.Now().Format("2006-01-02 15:04:05")
 	data["output"] = target
 	data["target_ids"] = targetIds
 	data["rule_id"] = rule.ID
@@ -188,9 +189,17 @@ func Report(context any, group *globals.Group, targetPath []globals.Target, targ
 		data["method"] = ctx.Request.Method
 		data["path"] = ctx.Request.URL.Path
 	}
-	body["data"] = data
-	managerAddress := fmt.Sprintf("https://%s/api/report/create", globals.SecurityConfigs.ManagerHost)
-	request, err := utils.NewHttp("post", managerAddress, body)
+	managerAddress := fmt.Sprintf("https://%s/%s", globals.SecurityConfigs.ManagerHost, globals.ProxyConfigs.Report.ApiPath)
+	request, err := utils.NewHttp(
+		"post",
+		managerAddress,
+		globals.ProxyConfigs.Report.AuthUsername,
+		globals.ProxyConfigs.Report.AuthPassword,
+		globals.DictString{
+			globals.ProxyConfigs.Report.ApiHeader: globals.ProxyConfigs.Report.ApiToken,
+		},
+		data,
+	)
 	if err != nil {
 		msg := fmt.Sprintf("Rule %d: %v", rule.ID, err)
 		errors.WriteErrorActionLog(msg)

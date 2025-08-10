@@ -72,6 +72,9 @@ func Kill(context *gin.Context, decision *globals.Decision) (bool, bool, bool, b
 	request, err := utils.NewHttp(
 		"post",
 		fmt.Sprintf("%s%s", globals.BackendConfigs.BuildUrl(), options[1]),
+		"",
+		"",
+		globals.DictString{},
 		map[string]any{
 			"header": options[0],
 		},

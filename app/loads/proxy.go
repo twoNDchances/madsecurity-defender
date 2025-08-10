@@ -77,6 +77,13 @@ func PrepareProxy() (*globals.Proxy, bool) {
 		HistoryAuditPath:   globals.ProxyVars["history.audit.path"],
 		HistoryErrorEnable: errorEnable,
 		HistoryErrorPath:   globals.ProxyVars["history.error.path"],
+		Report: globals.Report{
+			ApiPath:      globals.ProxyVars["report.api.path"],
+			ApiHeader:    globals.ProxyVars["report.api.header"],
+			ApiToken:     globals.ProxyVars["report.api.token"],
+			AuthUsername: globals.ProxyVars["report.auth.username"],
+			AuthPassword: globals.ProxyVars["report.auth.password"],
+		},
 	}
 	if errors := proxy.Validate(); errors != nil {
 		for _, err := range errors {

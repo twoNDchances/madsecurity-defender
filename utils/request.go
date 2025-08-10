@@ -18,9 +18,12 @@ var supportedMethods = []string{
 }
 
 type httpRequest struct {
-	method string
-	url    string
-	body   map[string]any
+	method   string
+	url      string
+	username string
+	password string
+	headers  map[string]string
+	body     map[string]any
 }
 
 func (h *httpRequest) validate() error {
@@ -52,11 +55,14 @@ func (h *httpRequest) validateUrl() error {
 	return nil
 }
 
-func NewHttp(method, url string, body map[string]any) (*httpRequest, error) {
+func NewHttp(method, url, username, password string, headers map[string]string, body map[string]any) (*httpRequest, error) {
 	http := httpRequest{
-		method: method,
-		url:    url,
-		body:   body,
+		method:   method,
+		url:      url,
+		username: username,
+		password: password,
+		headers:  headers,
+		body:     body,
 	}
 	if err := http.validate(); err != nil {
 		return nil, err
@@ -73,8 +79,14 @@ func (h *httpRequest) Send() (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(h.username) > 0 && len(h.password) > 0 {
+		req.SetBasicAuth(h.username, h.password)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "M&DSecurity/Defender")
+	for key, value := range h.headers {
+		req.Header.Set(key, value)
+	}
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{

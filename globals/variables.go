@@ -78,6 +78,11 @@ var (
 		"history.audit.path":   os.Getenv("DEFENDER_PROXY_HISTORY_AUDIT_PATH"),
 		"history.error.enable": os.Getenv("DEFENDER_PROXY_HISTORY_ERROR_ENABLE"),
 		"history.error.path":   os.Getenv("DEFENDER_PROXY_HISTORY_ERROR_PATH"),
+		"report.api.path":      os.Getenv("DEFENDER_PROXY_REPORT_API_PATH"),
+		"report.api.header":    os.Getenv("DEFENDER_PROXY_REPORT_API_HEADER"),
+		"report.api.token":     os.Getenv("DEFENDER_PROXY_REPORT_API_TOKEN"),
+		"report.auth.username": os.Getenv("DEFENDER_PROXY_REPORT_AUTH_USERNAME"),
+		"report.auth.password": os.Getenv("DEFENDER_PROXY_REPORT_AUTH_PASSWORD"),
 	}
 
 	BackendVars = DictString{
@@ -111,6 +116,11 @@ var (
 		"proxy.tls.crt",
 		"proxy.host",
 		"proxy.history.error.path",
+		"proxy.report.api.path",
+		"proxy.report.api.header",
+		"proxy.report.api.token",
+		"proxy.report.auth.username",
+		"proxy.report.auth.password",
 
 		"backend.path",
 	}

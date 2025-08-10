@@ -14,6 +14,7 @@ type Proxy struct {
 	HistoryAuditPath   string
 	HistoryErrorEnable bool
 	HistoryErrorPath   string
+	Report             Report
 }
 
 func (p *Proxy) Validate() ListError {
@@ -151,6 +152,62 @@ func (s *Severity) validateSeverity(name string) error {
 	}
 	if value := severities[name]; value <= 0 || value >= 100000 {
 		return utils.NewProxyError(fmt.Sprintf("Severity.%s", name), "Must in range 1 -> 99999")
+	}
+	return nil
+}
+
+type Report struct {
+	ApiPath      string
+	ApiHeader    string
+	ApiToken     string
+	AuthUsername string
+	AuthPassword string
+}
+
+func (r *Report) Validate() ListError {
+	if errors := Validate(
+		r.validatePath(),
+		r.validateHeader(),
+		r.validateToken(),
+		r.validateUsername(),
+		r.validatePassword(),
+	); len(errors) > 0 {
+		return errors
+	}
+	return nil
+}
+
+func (r *Report) validatePath() error {
+	if len(r.ApiPath) == 0 {
+		return utils.NewProxyError("Report.Api.Path", "Empty API Path")
+	}
+	return nil
+}
+
+func (r *Report) validateHeader() error {
+	if len(r.ApiHeader) == 0 {
+		return utils.NewProxyError("Report.Api.Header", "Empty API Header")
+	}
+	return nil
+}
+
+func (r *Report) validateToken() error {
+	if len(r.ApiToken) > 48 || len(r.ApiToken) < 48 {
+		return utils.NewProxyError("Report.Api.Token", "Length must be 48")
+	}
+	return nil
+}
+
+func (r *Report) validateUsername() error {
+	if len(r.AuthUsername) == 0 {
+		return utils.NewProxyError("Report.Auth.Username", "Empty Username")
+	}
+	return nil
+}
+
+func (r *Report) validatePassword() error {
+	if len(r.AuthPassword) < 4 {
+		return utils.NewProxyError("Report.Auth.Password", "Password length must be greater than or equal 4")
 	}
 	return nil
 }
