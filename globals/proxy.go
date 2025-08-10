@@ -14,7 +14,7 @@ type Proxy struct {
 	HistoryAuditPath   string
 	HistoryErrorEnable bool
 	HistoryErrorPath   string
-	Record             Record
+	Report             Report
 }
 
 func (p *Proxy) Validate() ListError {
@@ -156,7 +156,7 @@ func (s *Severity) validateSeverity(name string) error {
 	return nil
 }
 
-type Record struct {
+type Report struct {
 	ApiPath      string
 	ApiHeader    string
 	ApiToken     string
@@ -164,7 +164,7 @@ type Record struct {
 	AuthPassword string
 }
 
-func (r *Record) Validate() ListError {
+func (r *Report) Validate() ListError {
 	if errors := Validate(
 		r.validatePath(),
 		r.validateHeader(),
@@ -177,37 +177,37 @@ func (r *Record) Validate() ListError {
 	return nil
 }
 
-func (r *Record) validatePath() error {
+func (r *Report) validatePath() error {
 	if len(r.ApiPath) == 0 {
-		return utils.NewProxyError("Record.Api.Path", "Empty API Path")
+		return utils.NewProxyError("Report.Api.Path", "Empty API Path")
 	}
 	return nil
 }
 
-func (r *Record) validateHeader() error {
+func (r *Report) validateHeader() error {
 	if len(r.ApiHeader) == 0 {
-		return utils.NewProxyError("Record.Api.Header", "Empty API Header")
+		return utils.NewProxyError("Report.Api.Header", "Empty API Header")
 	}
 	return nil
 }
 
-func (r *Record) validateToken() error {
+func (r *Report) validateToken() error {
 	if len(r.ApiToken) > 48 || len(r.ApiToken) < 48 {
-		return utils.NewProxyError("Record.Api.Token", "Length must be 48")
+		return utils.NewProxyError("Report.Api.Token", "Length must be 48")
 	}
 	return nil
 }
 
-func (r *Record) validateUsername() error {
+func (r *Report) validateUsername() error {
 	if len(r.AuthUsername) == 0 {
-		return utils.NewProxyError("Record.Auth.Username", "Empty Username")
+		return utils.NewProxyError("Report.Auth.Username", "Empty Username")
 	}
 	return nil
 }
 
-func (r *Record) validatePassword() error {
+func (r *Report) validatePassword() error {
 	if len(r.AuthPassword) < 4 {
-		return utils.NewProxyError("Record.Auth.Password", "Password length must be greater than or equal 4")
+		return utils.NewProxyError("Report.Auth.Password", "Password length must be greater than or equal 4")
 	}
 	return nil
 }

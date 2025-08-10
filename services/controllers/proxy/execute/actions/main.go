@@ -21,8 +21,8 @@ func Perform(context any, contextGin *gin.Context, group *globals.Group, targetP
 		forceReturn, result, audit = SetScore(contextGin, rule)
 	case "setLevel":
 		forceReturn, result, audit = SetLevel(contextGin, rule)
-	case "record":
-		forceReturn, result, audit = Record(context, group, targetPath, targetValue, rule)
+	case "report":
+		forceReturn, result, audit = Report(context, group, targetPath, targetValue, rule)
 	case "setVariable":
 		forceReturn, result, audit = SetVariable(contextGin, rule)
 	case "setHeader":
