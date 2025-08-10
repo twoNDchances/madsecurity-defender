@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"madsecurity-defender/utils"
-	"net"
 	"slices"
 	"sync"
 
@@ -27,23 +26,12 @@ type RedisStorage struct {
 
 func (r *RedisStorage) validate() ListError {
 	if errors := Validate(
-		r.validateHost(),
 		r.validatePort(),
 		r.validateDatabase(),
 		r.validateConnection(),
 		r.assignValue(),
 	); len(errors) > 0 {
 		return errors
-	}
-	return nil
-}
-
-func (r *RedisStorage) validateHost() error {
-	if r.Host == "" {
-		return nil
-	}
-	if net.ParseIP(r.Host) == nil {
-		return utils.NewServerError("Storage.Redis.Host", "Invalid IP")
 	}
 	return nil
 }

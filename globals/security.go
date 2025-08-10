@@ -2,7 +2,6 @@ package globals
 
 import (
 	"madsecurity-defender/utils"
-	"net"
 	"slices"
 
 	"github.com/gin-gonic/gin"
@@ -34,8 +33,8 @@ func (s *Security) Validate() ListError {
 }
 
 func (s *Security) validateManagerHost() error {
-	if net.ParseIP(s.ManagerHost) == nil {
-		return utils.NewServerError("Security.Manager.IP", "Invalid IP")
+	if len(s.ManagerHost) == 0 {
+		return utils.NewServerError("Security.Manager.IP", "Invalid Manager Host")
 	}
 	return nil
 }

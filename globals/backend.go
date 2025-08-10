@@ -3,7 +3,6 @@ package globals
 import (
 	"fmt"
 	"madsecurity-defender/utils"
-	"net"
 	"net/url"
 	"slices"
 	"strings"
@@ -41,11 +40,8 @@ func (b *Backend) validateScheme() error {
 }
 
 func (b *Backend) validateHost() error {
-	if b.Host == "0.0.0.0" {
-		return utils.NewProxyError("Backend.Host", "Must specific an valid IP")
-	}
-	if net.ParseIP(b.Host) == nil {
-		return utils.NewProxyError("Backend.Host", "Invalid IP")
+	if b.Host == "0.0.0.0" || len(b.Host) == 0 {
+		return utils.NewProxyError("Backend.Host", "Must specific an valid host")
 	}
 	return nil
 }

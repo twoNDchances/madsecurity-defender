@@ -3,13 +3,35 @@ package middlewares
 import (
 	"madsecurity-defender/globals"
 	"madsecurity-defender/services/controllers/server/abort"
+	"net"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Inspect() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		if context.ClientIP() != globals.SecurityConfigs.ManagerHost {
+		match := true
+		clientIP := net.ParseIP(context.ClientIP())
+		if clientIP == nil {
+			match = false
+		} else {
+			if ip := net.ParseIP(globals.SecurityConfigs.ManagerHost); ip != nil {
+				match = ip.Equal(clientIP)
+			} else {
+				ips, err := net.LookupIP(globals.SecurityConfigs.ManagerHost)
+				if err != nil {
+					match = false
+				} else {
+					for _, ip := range ips {
+						if ip.Equal(clientIP) {
+							match = true
+							break
+						}
+					}
+				}
+			}
+		}
+		if !match {
 			if globals.SecurityConfigs.MaskEnable {
 				abort.Mask(context)
 			} else {
