@@ -1,4 +1,4 @@
-package sync
+package inspect
 
 import (
 	"madsecurity-defender/globals"
@@ -22,7 +22,7 @@ func paginate[T any](data []T, page, pageSize int) ([]T, int) {
 	return data[start:end], totalPages
 }
 
-func Sync(context *gin.Context) {
+func Inspect(context *gin.Context) {
 	page, err := strconv.Atoi(context.DefaultQuery("page", "1"))
 	if err != nil {
 		abort.InternalServerError(context, err.Error())
@@ -79,7 +79,7 @@ func Sync(context *gin.Context) {
 	pagedWordlists, wordlistsPages := paginate(wordlists, page, pageSize)
 	pagedWords, wordsPages := paginate(words, page, pageSize)
 	pagedDecisions, decisionsPages := paginate(decisions, page, pageSize)
-	complete.OK(context, "synced", gin.H{
+	complete.OK(context, "inspected", gin.H{
 		"resources": gin.H{
 			"groups":    pagedGroups,
 			"rules":     pagedRules,

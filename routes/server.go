@@ -32,9 +32,9 @@ func RouteServer(router *gin.Engine) {
 				handler: controllers.ReturnHealth,
 			},
 			{
-				method:  globals.ServerConfigs.SyncMethod,
-				path:    globals.ServerConfigs.Sync,
-				handler: controllers.ReturnSynchronization,
+				method:  globals.ServerConfigs.InspectMethod,
+				path:    globals.ServerConfigs.Inspect,
+				handler: controllers.ReturnInspection,
 			},
 			{
 				method:  globals.ServerConfigs.ApplyMethod,

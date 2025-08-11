@@ -31,8 +31,8 @@ type Server struct {
 	Prefix          string
 	Health          string
 	HealthMethod    string
-	Sync            string
-	SyncMethod      string
+	Inspect         string
+	InspectMethod   string
 	Apply           string
 	ApplyMethod     string
 	Revoke          string
@@ -49,7 +49,7 @@ func (p *Server) Validate() ListError {
 		p.validateHost(),
 		p.validatePort(),
 		p.validatePath(),
-		p.validateMethod("sync"),
+		p.validateMethod("inspect"),
 		p.validateMethod("health"),
 		p.validateMethod("apply"),
 		p.validateMethod("revoke"),
@@ -125,7 +125,7 @@ func (s *Server) validatePath() error {
 	paths := DictString{
 		"Prefix":    s.Prefix,
 		"Health":    s.Health,
-		"Sync":      s.Sync,
+		"Inspect":   s.Inspect,
 		"Apply":     s.Apply,
 		"Revoke":    s.Revoke,
 		"Implement": s.Implement,
@@ -149,9 +149,9 @@ func (s *Server) validateMethod(route string) error {
 			return utils.NewServerError("Health.Method", errorMsg)
 		}
 	}
-	if route == "sync" {
-		if !slices.Contains(methods, strings.ToLower(s.SyncMethod)) {
-			return utils.NewServerError("Sync.Method", errorMsg)
+	if route == "inspect" {
+		if !slices.Contains(methods, strings.ToLower(s.InspectMethod)) {
+			return utils.NewServerError("Inspect.Method", errorMsg)
 		}
 	}
 	if route == "apply" {

@@ -4,9 +4,9 @@ import (
 	"madsecurity-defender/services/controllers/server/apply"
 	"madsecurity-defender/services/controllers/server/health"
 	"madsecurity-defender/services/controllers/server/implement"
+	"madsecurity-defender/services/controllers/server/inspect"
 	"madsecurity-defender/services/controllers/server/revoke"
 	"madsecurity-defender/services/controllers/server/suspend"
-	"madsecurity-defender/services/controllers/server/sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,8 +15,8 @@ func ReturnHealth(context *gin.Context) {
 	health.Health(context)
 }
 
-func ReturnSynchronization(context *gin.Context) {
-	sync.Sync(context)
+func ReturnInspection(context *gin.Context) {
+	inspect.Inspect(context)
 }
 
 func ReturnApplication(context *gin.Context) {

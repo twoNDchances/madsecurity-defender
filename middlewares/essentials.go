@@ -28,8 +28,8 @@ func Check() gin.HandlerFunc {
 			if !strings.EqualFold(context.Request.Method, globals.ServerConfigs.HealthMethod) {
 				correctMethod = false
 			}
-		case fmt.Sprintf("%s%s", globals.ServerConfigs.Prefix, globals.ServerConfigs.Sync):
-			if !strings.EqualFold(context.Request.Method, globals.ServerConfigs.SyncMethod) {
+		case fmt.Sprintf("%s%s", globals.ServerConfigs.Prefix, globals.ServerConfigs.Inspect):
+			if !strings.EqualFold(context.Request.Method, globals.ServerConfigs.InspectMethod) {
 				correctMethod = false
 			}
 		case fmt.Sprintf("%s%s", globals.ServerConfigs.Prefix, globals.ServerConfigs.Apply):
