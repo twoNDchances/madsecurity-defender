@@ -1,3 +1,0 @@
-openssl genrsa -out tls/server.key 4096
-openssl req -new -key tls/server.key -out tls/server.csr
-openssl x509 -req -days 365 -in tls/server.csr -signkey tls/server.key -out tls/server.crt
