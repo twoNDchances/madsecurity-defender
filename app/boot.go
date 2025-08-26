@@ -8,6 +8,7 @@ import (
 	"madsecurity-defender/globals"
 	"madsecurity-defender/middlewares"
 	"madsecurity-defender/utils"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,11 @@ func Boot() {
 
 	log.Println(utils.NewColor("Validating...", utils.BLUE))
 	appInfo, status := loads.PrepareInfo()
+	defer func() {
+		if !status {
+			os.Exit(1)
+		}
+	}()
 	if !status {
 		return
 	}
