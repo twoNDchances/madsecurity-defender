@@ -23,9 +23,9 @@ func Deny() (bool, bool, bool) {
 	return true, false, true
 }
 
-func Inspect(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
+func Suspect(context *gin.Context, rule *globals.Rule) (bool, bool, bool) {
 	if rule.Severity == nil {
-		msg := fmt.Sprintf("Rule %d: missing Severity for Inspect action", rule.ID)
+		msg := fmt.Sprintf("Rule %d: missing Severity for Suspect action", rule.ID)
 		errors.WriteErrorActionLog(msg)
 		return true, false, false
 	}

@@ -13,8 +13,8 @@ func Perform(context any, contextGin *gin.Context, group *globals.Group, targetP
 		forceReturn, result, audit = Allow()
 	case "deny":
 		forceReturn, result, audit = Deny()
-	case "inspect":
-		forceReturn, result, audit = Inspect(contextGin, rule)
+	case "suspect":
+		forceReturn, result, audit = Suspect(contextGin, rule)
 	case "request":
 		forceReturn, result, audit = Request(context, targetPath, targetValue, rule)
 	case "setScore":

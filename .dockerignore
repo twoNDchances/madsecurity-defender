@@ -16,5 +16,9 @@ history/*.json
 # Env / secrets
 *.env.*
 
-# Tests
+# Tests / Docs
 tests
+AUTHORS
+CHANGES
+LICENSE
+README.*
