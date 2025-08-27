@@ -1,0 +1,20 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Logs & Debug
+history/*.log
+history/*.json
+
+# OS / IDE files
+.vscode
+
+# Env / secrets
+*.env.*
+
+# Tests
+tests
