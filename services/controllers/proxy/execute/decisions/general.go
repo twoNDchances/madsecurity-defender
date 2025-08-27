@@ -76,7 +76,7 @@ func Kill(context *gin.Context, decision *globals.Decision) (bool, bool, bool, b
 		"",
 		globals.DictString{},
 		map[string]any{
-			"header": options[0],
+			options[0]: context.Request.Header.Get(options[0]),
 		},
 	)
 	if err != nil {
